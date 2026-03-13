@@ -1,6 +1,24 @@
 // MEDISCAN AI v2 — Main JavaScript (Upgraded)
 'use strict';
 
+// ── PWA Service Worker Registration ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => console.log('SW Registered', reg))
+      .catch(err => console.log('SW Registration Failed', err));
+  });
+}
+
+// ── PWA Install Logic ────────────────────────────────────────────────────────
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install button or toast if desired
+  console.log('PWA Install Prompt available');
+});
+
 // ── State ──────────────────────────────────────────────────────────────────
 const state = {
   activeMode: 'scan',
@@ -38,6 +56,49 @@ function renderMarkdown(text) {
     .replace(/^## (.+)$/gm, '<h3 style="color:var(--accent);margin:8px 0 4px;font-size:.9rem">$1</h3>')
     .replace(/^> (.+)$/gm, '<blockquote style="border-left:3px solid var(--accent);padding-left:10px;color:var(--text-muted);margin:6px 0">$1</blockquote>')
     .replace(/\n/g, '<br>');
+}
+
+// ── Skeleton Loader Control ───────────────────────────────────────────────
+function toggleSkeleton(panelId, show) {
+  const skeleton = $(`#${panelId}Skeleton`);
+  const content = $(`#${panelId}Content`);
+  if (!skeleton || !content) return;
+  if (show) {
+    skeleton.style.display = 'block';
+    content.style.display = 'none';
+    $(`#${panelId}Panel`).classList.add('visible');
+  } else {
+    skeleton.style.display = 'none';
+    content.style.display = 'block';
+  }
+}
+
+// ── PDF Export ────────────────────────────────────────────────────────────
+async function exportToPDF(title, contentId) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const content = document.getElementById(contentId);
+  if (!content) return;
+
+  doc.setFontSize(22);
+  doc.setTextColor(0, 200, 255);
+  doc.text("Mediscan AI - Clinical Report", 20, 20);
+
+  doc.setFontSize(12);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 30);
+
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.text(title, 20, 45);
+
+  const text = content.innerText;
+  const splitText = doc.splitTextToSize(text, 170);
+  doc.setFontSize(11);
+  doc.text(splitText, 20, 55);
+
+  doc.save(`Mediscan_Report_${Date.now()}.pdf`);
+  showToast('PDF Exported Successfully!', 'success');
 }
 
 // ── Counter Animation ────────────────────────────────────────────────────
@@ -192,6 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initMedicineSearch();
   initTrainForm();
   initQualityPanel();
+  initChat();
+  initPrescriptionCamera();
+
   // Show angle toolbar when scan file is picked
   const fi = $('#fileInput');
   fi?.addEventListener('change', () => { if (fi.files[0]) window._showAngleToolbar?.(); });
@@ -335,9 +399,10 @@ function initRxImageUpload() {
       const data = await res.json();
       if (data.error) {
         showToast(data.error, 'error');
+        toggleSkeleton('rx', false);
         // Still show raw OCR text if available
         if (data.raw_text) {
-          const panel = $('#rxResultsPanel');
+          const panel = $('#rxContent');
           if (panel) {
             panel.style.display = 'block';
             panel.innerHTML = `
@@ -349,8 +414,9 @@ function initRxImageUpload() {
         }
         return;
       }
+      toggleSkeleton('rx', false);
       // Show OCR text banner
-      const panel = $('#rxResultsPanel');
+      const panel = $('#rxContent');
       if (panel && data.data?.raw_text) {
         const ocr = el('div', 'glass');
         ocr.style.cssText = 'padding:16px 20px;margin-bottom:16px;';
@@ -360,12 +426,13 @@ function initRxImageUpload() {
         panel.style.display = 'block';
         panel.appendChild(ocr);
       }
-      renderPrescriptionResult(data.data, '#rxResultsPanel');
+      renderPrescriptionResult(data.data, '#rxContent');
       showToast('Prescription extracted & analyzed!', 'success');
       loadLiveStats();
-      setTimeout(() => panel?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+      setTimeout(() => $('#rxResultsPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
     } catch (e) {
       showToast('OCR failed — check the server is running.', 'error');
+      toggleSkeleton('rx', false);
     } finally {
       setLoading(btn, false);
       if (loadBar) loadBar.style.display = 'none';
@@ -410,17 +477,23 @@ function initUpload() {
     if (!input._file) { showToast('Please select a medical image first.', 'error'); return; }
     setLoading(btn, true, '⏳ Analyzing…');
     loadBar.style.display = 'block';
+    toggleSkeleton('scan', true);
     try {
       const form = new FormData();
       form.append('file', input._file);
       form.append('scan_type', state.scanType);
       const res = await fetch('/api/upload', { method: 'POST', body: form });
       const data = await res.json();
-      if (data.error) { showToast(data.error, 'error'); return; }
+      if (data.error) {
+        showToast(data.error, 'error');
+        toggleSkeleton('scan', false);
+        return;
+      }
+      toggleSkeleton('scan', false);
       if (data.analysis_type === 'prescription') {
-        renderPrescriptionResult(data.data, '#scanResultsPanel');
+        renderPrescriptionResult(data.data, '#scanContent');
       } else {
-        renderScanResult(data.data);
+        renderScanResult(data.data, '#scanContent');
       }
       showToast('Analysis complete!', 'success');
       loadLiveStats();
@@ -572,6 +645,7 @@ function renderScanResult(data, panelSel, angle) {
         <div class="report-box" id="clinicalReport">${data.report}</div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-outline btn-sm" id="copyReportBtn" onclick="copyReport()">📋 Copy Report</button>
+          <button class="btn btn-outline btn-sm" onclick="exportToPDF('Medical Scan Analysis', 'clinicalReport')">📥 Download PDF</button>
           <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print</button>
         </div>
       </div>`;
@@ -798,7 +872,8 @@ function renderPrescriptionResult(data, panelSel) {
   tr.innerHTML = `
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-outline btn-sm" id="translateRxBtn">🌐 🇮🇳 Tamil</button>
-      <button class="btn btn-outline btn-sm" id="translateRxTangBtn">🌐 🔡 Tanglish</button>
+      <button class="btn btn-outline btn-sm" id="translateTangRxBtn">🌐 🔡 Tanglish</button>
+      <button class="btn btn-outline btn-sm" onclick="exportToPDF('Prescription Analysis', 'rxResultsPanel')">📥 Download PDF</button>
     </div>
     <div class="tamil-box" id="tamilRxBox"></div>
     <div class="tanglish-box" id="tanglishRxBox"></div>`;
@@ -810,82 +885,74 @@ function renderPrescriptionResult(data, panelSel) {
     await translateText(data.summary, 'tamilRxBox', 'translate');
     btn.textContent = '🌐 🇮🇳 Tamil'; btn.disabled = false;
   });
-  $('#translateRxTangBtn', panel)?.addEventListener('click', async () => {
-    const btn = $('#translateRxTangBtn', panel);
+  $('#translateTangRxBtn', panel)?.addEventListener('click', async () => {
+    const btn = $('#translateTangRxBtn', panel);
     btn.textContent = '⏳…'; btn.disabled = true;
     await translateText(data.summary, 'tanglishRxBox', 'translate-tanglish');
     btn.textContent = '🌐 🔡 Tanglish'; btn.disabled = false;
   });
 }
 
-// ── Medicine Search (improved with debounce + result count) ───────────────────
+// ── Medicine Search ────────────────────────────────────────────────────────
 function initMedicineSearch() {
-  const btn = $('#searchBtn');
   const input = $('#medSearchInput');
-  if (!btn || !input) return;
+  const btn = $('#searchBtn');
+  const results = $('#searchResults');
+  if (!input || !btn || !results) return;
 
-  let debounceTimer;
+  const renderSearchResults = (meds, q) => {
+    results.innerHTML = '';
+    if (!meds || !meds.length) {
+      results.innerHTML = `
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:2.5rem;opacity:0.3">💡</span>
+          <p style="margin-bottom:15px">No matches found for "<strong>${q}</strong>"</p>
+          <button class="btn btn-outline btn-sm" onclick="showTrainWith('${q}')">🧠 Train Mediscan on "${q}"</button>
+        </div>`;
+      return;
+    }
+
+    results.innerHTML = `<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:12px">Found ${meds.length} matches:</div>`;
+
+    meds.forEach(med => {
+      const card = el('div', 'medicine-card fade-in');
+      card.innerHTML = `
+        <div class="med-name">${med.name}</div>
+        <div class="med-category">${med.category || 'Medicine'}</div>
+        <div class="med-detail"><strong>Uses:</strong> ${(med.uses || []).join(', ') || '—'}</div>
+        <div class="med-detail"><strong>Dosage:</strong> ${med.dosage || 'As directed'}</div>
+        <div class="med-warnings">${(med.warnings || []).map(w => `<span class="warn-tag">⚠ ${w}</span>`).join('')}</div>
+      `;
+      results.appendChild(card);
+    });
+  };
 
   const doSearch = async () => {
     const q = input.value.trim();
-    if (!q) { showToast('Enter a medicine name', 'error'); return; }
-    btn.textContent = '⏳';
+    if (!q) return;
+    setLoading(btn, true, '🔍');
     try {
       const r = await fetch(`/api/search-medicine?q=${encodeURIComponent(q)}`);
       const d = await r.json();
-      const results = $('#searchResults');
-      if (!results) return;
-      if (!d.results?.length) {
-        results.innerHTML = `<div class="empty-state"><span class="empty-icon">🔍</span><p>No medicines found for <strong>${q}</strong></p></div>`;
-        return;
-      }
-      results.innerHTML = `<div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px">Showing ${d.results.length} result${d.results.length > 1 ? 's' : ''} ${d.total > d.results.length ? `of ${d.total}` : ''}</div>`;
-      d.results.forEach(med => {
-        const card = el('div', 'medicine-card fade-in');
-        card.innerHTML = `
-          <div class="med-name">${med.name}</div>
-          <div class="med-category">${med.category}</div>
-          <div class="med-detail"><strong>Uses:</strong> ${(med.uses || []).join(', ')}</div>
-          <div class="med-detail"><strong>Dosage:</strong> ${med.dosage}</div>
-          <div class="med-detail"><strong>Alternatives:</strong> ${(med.alternatives || []).join(', ') || 'None listed'}</div>
-          <div class="med-warnings">${(med.warnings || []).map(w => `<span class="warn-tag">⚠ ${w}</span>`).join('')}</div>`;
-        results.appendChild(card);
-      });
-
-      if (d.results.length > 0) {
-        const firstMed = d.results[0];
-        const textToTranslate = `${firstMed.name}: ${firstMed.category}. Uses: ${firstMed.uses.join(', ')}. Dosage: ${firstMed.dosage}. Warnings: ${firstMed.warnings.join(', ')}`;
-        const tr = el('div', 'mt-16');
-        tr.innerHTML = `
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-outline btn-sm" id="translateSearchBtn">🌐 🇮🇳 Tamil</button>
-            <button class="btn btn-outline btn-sm" id="translateSearchTangBtn">🌐 🔡 Tanglish</button>
-          </div>
-          <div class="tamil-box" id="tamilSearchBox"></div>
-          <div class="tanglish-box" id="tanglishSearchBox"></div>`;
-        results.appendChild(tr);
-        $('#translateSearchBtn', results)?.addEventListener('click', async () => {
-          const b = $('#translateSearchBtn', results); b.textContent = '⏳…'; b.disabled = true;
-          await translateText(textToTranslate, 'tamilSearchBox', 'translate');
-          b.textContent = '🌐 🇮🇳 Tamil'; b.disabled = false;
-        });
-        $('#translateSearchTangBtn', results)?.addEventListener('click', async () => {
-          const b = $('#translateSearchTangBtn', results); b.textContent = '⏳…'; b.disabled = true;
-          await translateText(textToTranslate, 'tanglishSearchBox', 'translate-tanglish');
-          b.textContent = '🌐 🔡 Tanglish'; b.disabled = false;
-        });
-      }
-    } catch { showToast('Search failed', 'error'); }
-    finally { btn.textContent = '🔍'; }
+      renderSearchResults(d.results, q);
+    } catch {
+      showToast('Search failed', 'error');
+    } finally {
+      setLoading(btn, false);
+    }
   };
+
+  let debounceTimer;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = input.value.trim();
+    if (q.length >= 3) {
+      debounceTimer = setTimeout(doSearch, 400);
+    }
+  });
 
   btn.addEventListener('click', doSearch);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-  // Real-time search with 400ms debounce
-  input.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => { if (input.value.trim().length >= 3) doSearch(); }, 400);
-  });
 }
 
 // ── Train AI (Add Custom Medicine) ────────────────────────────────────────────
@@ -916,4 +983,107 @@ function initTrainForm() {
     } catch { showToast('Training failed', 'error'); }
     finally { setLoading(submitBtn, false); }
   });
+}
+
+// ── Chat Interface ────────────────────────────────────────────────────────
+async function initChat() {
+  const input = $('#chatInput');
+  const btn = $('#chatBtn');
+  const msgs = $('#chatMessages');
+  const reasoning = $('#aiReasoning');
+  const stepsCont = $('#reasoningSteps');
+  if (!input || !btn || !msgs) return;
+
+  const addMsg = (text, isBot = true) => {
+    const m = el('div', isBot ? 'bot-msg' : 'user-msg', renderMarkdown(text));
+    msgs.appendChild(m);
+    msgs.scrollTop = msgs.scrollHeight;
+  };
+
+  const doChat = async () => {
+    const q = input.value.trim();
+    if (!q) return;
+    addMsg(q, false);
+    input.value = '';
+    setLoading(btn, true, '…');
+    if (reasoning) reasoning.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, context: state.currentResult })
+      });
+      const data = await res.json();
+      if (data.reasoning && data.reasoning.length && reasoning) {
+        reasoning.style.display = 'block';
+        stepsCont.innerHTML = data.reasoning.map(step => `<div style="margin-bottom:4px">◦ ${step}</div>`).join('');
+      }
+      addMsg(data.answer || "I'm sorry, I couldn't process that.");
+    } catch {
+      addMsg("Connecting to Mediscan AI engine...");
+    } finally {
+      setLoading(btn, false);
+    }
+  };
+
+  btn.addEventListener('click', doChat);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') doChat(); });
+}
+
+// ── Prescription Camera ───────────────────────────────────────────────────
+function initPrescriptionCamera() {
+  const openBtn = $('#openCamBtn');
+  const captureBtn = $('#captureBtn');
+  const closeBtn = $('#closeCamBtn');
+  const video = $('#rxVideo');
+  const container = $('#cameraContainer');
+  const canvas = $('#rxCaptureCanvas');
+  const preview = $('#rxPreviewImg');
+  const input = $('#rxFileInput');
+
+  if (!openBtn || !video) return;
+
+  let stream = null;
+
+  openBtn.onclick = async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      video.srcObject = stream;
+      container.style.display = 'block';
+      openBtn.parentElement.style.display = 'none';
+    } catch (e) {
+      showToast('Camera access denied or not available.', 'error');
+    }
+  };
+
+  const stopCam = () => {
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    container.style.display = 'none';
+    openBtn.parentElement.style.display = 'block';
+  };
+
+  closeBtn.onclick = stopCam;
+
+  captureBtn.onclick = () => {
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+
+    canvas.toBlob(blob => {
+      const file = new File([blob], 'captured_rx.jpg', { type: 'image/jpeg' });
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      input.files = dataTransfer.files;
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+      preview.style.display = 'block';
+      input._file = file;
+      stopCam();
+      showToast('Photo captured!', 'success');
+    }, 'image/jpeg', 0.9);
+  };
 }

@@ -263,39 +263,32 @@ def perform_ocr(filepath):
         enhanced = ImageEnhance.Sharpness(enhanced).enhance(3.0)
         
         all_results = []
-        for psm in [3, 4, 6, 11]:
-            for oem in [1, 3]:
-                try:
-                    cfg = f'--oem {oem} --psm {psm} -l eng -c preserve_interword_spaces=1'
-                    txt = pytesseract.image_to_string(enhanced, config=cfg)
-                    if txt.strip(): all_results.append(txt)
-                except Exception: pass
+        # Phase 1: Fast Pass - Standard PSMs
+        for psm in [3, 6]:
+            try:
+                cfg = f'--oem 3 --psm {psm} -l eng'
+                txt = pytesseract.image_to_string(enhanced, config=cfg)
+                if txt.strip(): all_results.append(txt)
+            except Exception: pass
         
-        # Early exit if fast pass is high quality
-        if all_results:
-            best_fast = _token_vote_consensus(all_results)
-            if _score_result(best_fast) >= 20:
-                return _apply_ocr_fixes(best_fast)
-        
-        # Phase 2: CV2 Preprocessing pipelines
+        # Phase 2: CV2 Preprocessing pipelines - Targeted for Handwritten
         if CV2_OK:
             arr = np.array(img)
-            pipelines = [
-                _preprocess_printed_v1, _preprocess_printed_v2,
-                _preprocess_handwritten_v1, _preprocess_handwritten_v2,
-                _preprocess_handwritten_v3, _preprocess_handwritten_v4
-            ]
+            # Use only the 2 most effective pipelines
+            pipelines = [_preprocess_handwritten_v1, _preprocess_printed_v2]
             for pipe in pipelines:
                 try:
                     processed = pipe(arr)
                     p_pil = Image.fromarray(processed)
-                    for psm in [4, 6, 11, 13]:
-                        for oem in [1, 3]:
-                            try:
-                                cfg = f'--oem {oem} --psm {psm} -l eng -c preserve_interword_spaces=1'
-                                txt = pytesseract.image_to_string(p_pil, config=cfg)
-                                if txt.strip(): all_results.append(txt)
-                            except Exception: pass
+                    for psm in [6, 11]:
+                        try:
+                            cfg = f'--oem 3 --psm {psm} -l eng'
+                            txt = pytesseract.image_to_string(p_pil, config=cfg)
+                            if txt.strip(): all_results.append(txt)
+                        except Exception: pass
+                    # Early exit if we have good results
+                    if all_results and _score_result(_token_vote_consensus(all_results)) > 25:
+                        break
                 except Exception: continue
                 
         if not any(r.strip() for r in all_results):

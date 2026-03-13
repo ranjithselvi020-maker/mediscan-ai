@@ -145,11 +145,21 @@ body::before {
 /* ── Glassmorphism Card ── */
 .glass {
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 15px rgba(0, 200, 255, 0.05);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.glass:hover {
+  border-color: rgba(0, 200, 255, 0.3);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.6),
+    inset 0 0 20px rgba(0, 200, 255, 0.1);
 }
 
 /* ── NAV ── */
@@ -574,6 +584,46 @@ nav {
     width: 100%;
     opacity: 0;
   }
+}
+
+/* ── Skeleton Loaders ── */
+.skeleton {
+  background: linear-gradient(90deg,
+      var(--bg-input) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      var(--bg-input) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.5s infinite linear;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+@keyframes skeleton-wave {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+  width: 100%;
+}
+
+.skeleton-title {
+  height: 1.5em;
+  width: 60%;
+  margin-bottom: 1em;
+}
+
+.skeleton-img {
+  height: 200px;
+  width: 100%;
+  margin-bottom: 1em;
 }
 
 /* ── Results Panel ── */
@@ -1939,4 +1989,146 @@ nav {
 /* ── Preview image transition ───────────────────────────────────── */
 .preview-img {
   transition: transform .35s cubic-bezier(.4, 0, .2, 1), opacity .3s ease;
+}
+
+/* ── Mobile & Android Optimizations ────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  :root {
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    padding-bottom: 20px;
+  }
+
+  nav {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    height: auto;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+    justify-content: space-around;
+    background: rgba(0, 200, 255, 0.05);
+    padding: 6px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+
+  .nav-link {
+    padding: 8px 12px;
+  }
+
+  .hero {
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 2.2rem;
+    line-height: 1.2;
+  }
+
+  .hero h1 br {
+    display: none;
+  }
+
+  .hero-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+  }
+
+  .mode-tabs {
+    flex-direction: column;
+    padding: 0 16px;
+    gap: 10px;
+  }
+
+  .mode-tab {
+    width: 100%;
+    padding: 16px;
+    justify-content: center;
+    font-size: 1rem;
+    border-radius: 12px !important;
+  }
+
+  .main-layout {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .scan-selector {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .scan-opt {
+    padding: 12px 8px;
+  }
+
+  .opt-icon {
+    font-size: 1.4rem;
+  }
+
+  .btn {
+    padding: 16px 24px;
+    /* Larger hit targets for touch */
+    font-size: 0.95rem;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
+    text-align: center;
+  }
+
+  /* Optimized Camera UI for mobile */
+  #cameraContainer {
+    max-height: 70vh;
+  }
+
+  .chat-container {
+    height: 450px;
+  }
+
+  #chatMessages {
+    flex: 1;
+    max-height: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .scan-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Touch-specific hover state prevention */
+@media (hover: none) {
+  .glass:hover::after {
+    display: none;
+  }
+
+  .btn:hover {
+    transform: none;
+  }
+
+  .nav-link:hover::after {
+    width: 0;
+  }
 }

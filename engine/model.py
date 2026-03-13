@@ -260,7 +260,7 @@ SCAN_PROFILES = {
     },
     "abdomen_ct": {
         "label": "Abdomen CT",
-        "icon": "🫀",
+        "icon": "🍱",
         "conditions": [
             {
                 "name": "Normal Abdomen",
@@ -326,7 +326,7 @@ SCAN_PROFILES = {
     },
     "spine_xray": {
         "label": "Spine X-Ray",
-        "icon": "🦷",
+        "icon": "🦴",
         "conditions": [
             {
                 "name": "Normal Spine",
@@ -452,6 +452,9 @@ class AIDiagnosticEngine:
 
     def _extract_image_features(self, filepath):
         """Extract key image features for scan-type detection and quality check."""
+        if hasattr(self, '_last_feat') and self._last_path == filepath:
+            return self._last_feat
+
         features = {
             "brightness": 128.0,
             "edge_density": 0.05,
@@ -479,6 +482,9 @@ class AIDiagnosticEngine:
             features["height"] = h
         except Exception:
             pass
+        
+        self._last_path = filepath
+        self._last_feat = features
         return features
 
     def _detect_scan_type(self, filepath, hint="auto"):

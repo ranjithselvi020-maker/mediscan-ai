@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Admin Dashboard — MediScan AI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-admin: #020817;
+            --accent-admin: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+        }
+
+        body {
+            background: radial-gradient(circle at 0% 0%, #0c1a33 0%, var(--bg-admin) 100%);
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+        }
+
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.02);
+            border-right: 1px solid var(--border);
+            padding: 32px 24px;
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .main-content {
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .admin-nav-item:hover,
+        .admin-nav-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-admin);
+        }
+
+        .section-panel {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .section-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-admin);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 18px;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-admin);
+            outline: none;
+        }
+
+        .row-action {
+            cursor: pointer;
+            color: var(--accent-admin);
+            font-weight: 700;
+            background: none;
+            border: none;
+        }
+
+        .row-action.delete {
+            color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div style="margin-bottom: 48px;">
+                <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: -1px;">MediScan <span
+                        style="color:var(--accent-admin)">Admin</span></h1>
+                <p
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">
+                    Central Command</p>
+            </div>
+            <nav id="adminNav">
+                <div class="admin-nav-item active" onclick="showTab('overview')">📊 Overview</div>
+                <div class="admin-nav-item" onclick="showTab('history')">📜 Scan History</div>
+                <div class="admin-nav-item" onclick="showTab('knowledge')">🧠 Knowledge Base</div>
+                <div style="margin-top: auto; padding-top: 40px;">
+                    <a href="index.html" class="admin-nav-item">🏠 Return to App</a>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- OVERVIEW SECTION -->
+            <section id="overview" class="section-panel active">
+                <header style="margin-bottom: 40px;">
+                    <h2 style="font-size: 2.2rem; font-weight: 800;">System Insight</h2>
+                    <p style="color: var(--text-muted)">Real-time diagnostic metrics and system performance.</p>
+                </header>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px;">
+                    <div class="stat-card glass">
+                        <span style="font-size: 2rem;">🔬</span>
+                        <span class="stat-value" id="statTotalScans">0</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Total
+                            Diagnostics</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span style="font-size: 2rem;">🧠</span>
+                        <span class="stat-value" id="statCustomMeds">0</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Custom
+                            Knowledge</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span style="font-size: 2rem;">🎯</span>
+                        <span class="stat-value" id="statAvgConf">0%</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Avg
+                            Accuracy</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span style="font-size: 2rem;">📅</span>
+                        <span class="stat-value" id="statToday">0</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Today's
+                            Activity</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HISTORY SECTION -->
+            <section id="history" class="section-panel">
+                <header
+                    style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <h2 style="font-size: 2rem; font-weight: 800;">Scan Logs</h2>
+                        <p style="color: var(--text-muted)">Historical audit trail of all medical assessments.</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="clearHistory()">🗑️ Clear All</button>
+                </header>
+                <div class="glass" style="padding: 24px; border-radius: 24px; overflow-x: auto;">
+                    <table id="adminHistoryTable">
+                        <thead>
+                            <tr>
+                                <th>Scan ID</th>
+                                <th>Modality</th>
+                                <th>Accuracy</th>
+                                <th>Recorded At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- KNOWLEDGE SECTION -->
+            <section id="knowledge" class="section-panel">
+                <div style="display: grid; grid-template-columns: 1fr 380px; gap: 40px;">
+                    <!-- List -->
+                    <div>
+                        <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">Medical Training</h2>
+                        <p style="color: var(--text-muted); margin-bottom: 32px;">Curated knowledge base of custom
+                            medicine profiles.</p>
+                        <div class="glass" style="padding: 24px; border-radius: 24px; overflow-x: auto;">
+                            <table id="adminKnowledgeTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Uses</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Training Form -->
+                    <div class="glass"
+                        style="padding: 32px; border-radius: 28px; height: fit-content; sticky; top: 40px;">
+                        <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px;">🧠 Train Engine</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px;">Add new clinical
+                            data to the AI model.</p>
+                        <form id="trainForm" autocomplete="off">
+                            <div class="form-group">
+                                <label class="form-label">Medicine Name *</label>
+                                <input id="trainName" class="form-input" placeholder="e.g. Dexamethasone" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Classification</label>
+                                <input id="trainCategory" class="form-input" placeholder="e.g. Corticosteroid">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Indications (comma separated)</label>
+                                <input id="trainUses" class="form-input" placeholder="e.g. Inflammation, Allergy">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Clinical Dosage</label>
+                                <input id="trainDosage" class="form-input" placeholder="e.g. 4mg twice daily">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Warnings</label>
+                                <textarea id="trainWarnings" class="form-input" style="height: 80px; resize: none;"
+                                    placeholder="e.g. May cause insomnia"></textarea>
+                            </div>
+                            <button type="submit" id="trainSubmitBtn" class="btn btn-primary"
+                                style="width: 100%; padding: 16px;">🚀 Commit to Knowledge Base</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- TOAST SYSTEM (Simplified) -->
+    <div id="adminToast"
+        style="position: fixed; bottom: 32px; right: 32px; padding: 16px 24px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border); transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 9999; font-weight: 600;">
+    </div>
+
+    <script>
+        function showAdminToast(msg, type = 'success') {
+            const toast = document.getElementById('adminToast');
+            toast.textContent = msg;
+            toast.style.borderColor = type === 'success' ? 'var(--success)' : 'var(--danger)';
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.transform = 'translateY(100px)';
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            // Find the nav item that corresponds to the tabId
+            const navItems = document.querySelectorAll('.admin-nav-item');
+            navItems.forEach(item => {
+                if (item.getAttribute('onclick')?.includes(tabId)) item.classList.add('active');
+            });
+
+            if (tabId === 'overview') fetchStats();
+            if (tabId === 'history') loadHistory();
+            if (tabId === 'knowledge') loadKnowledge();
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                document.getElementById('statTotalScans').textContent = data.total;
+                document.getElementById('statCustomMeds').textContent = data.custom_medicines;
+                document.getElementById('statAvgConf').textContent = data.avg_confidence + '%';
+                document.getElementById('statToday').textContent = data.today;
+            } catch (e) { console.error('Stats error', e); }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const scans = await res.json();
+                const tbody = document.querySelector('#adminHistoryTable tbody');
+                if (!tbody) return;
+                tbody.innerHTML = scans.map(s => `
+                    <tr>
+                        <td style="font-family: monospace; font-size: 0.8rem;">#${s.id}</td>
+                        <td style="font-weight: 600;">${s.scan_type}</td>
+                        <td style="color: ${s.confidence > 85 ? 'var(--success)' : 'var(--warning)'}; font-weight: 700;">${s.confidence}%</td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted)">${new Date(s.timestamp).toLocaleString()}</td>
+                        <td><button class="row-action delete" onclick="deleteHistory(${s.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('History error', e); }
+        }
+
+        async function loadKnowledge() {
+            try {
+                const res = await fetch('/api/custom-medicines');
+                const data = await res.json();
+                const tbody = document.querySelector('#adminKnowledgeTable tbody');
+                if (!tbody) return;
+                tbody.innerHTML = data.medicines.map(m => `
+                    <tr>
+                        <td style="font-weight: 800; color: var(--accent-admin)">${m.name}</td>
+                        <td style="font-size: 0.9rem;">${m.category}</td>
+                        <td style="font-size: 0.8rem; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${m.uses.join(', ')}</td>
+                        <td><button class="row-action delete" onclick="deleteMedicine('${m.name}')">Remove</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('Knowledge error', e); }
+        }
+
+        async function deleteHistory(id) {
+            if (!confirm(`Delete scan #${id}?`)) return;
+            await fetch(`/api/history/delete/${id}`, { method: 'DELETE' });
+            loadHistory();
+            showAdminToast('Record deleted');
+        }
+
+        async function clearHistory() {
+            if (!confirm(`Wipe all scan history? This cannot be undone.`)) return;
+            await fetch(`/api/history/clear`, { method: 'DELETE' });
+            loadHistory();
+            showAdminToast('History cleared');
+        }
+
+        async function deleteMedicine(name) {
+            if (!confirm(`Remove '${name}' from trained data?`)) return;
+            await fetch(`/api/custom-medicines/delete/${name.toLowerCase()}`, { method: 'DELETE' });
+            loadKnowledge();
+            showAdminToast('Knowledge entry removed');
+        }
+
+        const trainForm = document.getElementById('trainForm');
+        trainForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('trainSubmitBtn');
+            const data = {
+                name: document.getElementById('trainName').value,
+                category: document.getElementById('trainCategory').value,
+                uses: document.getElementById('trainUses').value,
+                dosage: document.getElementById('trainDosage').value,
+                warnings: document.getElementById('trainWarnings').value
+            };
+            btn.disabled = true;
+            btn.textContent = '⏳ Training AI Model...';
+            try {
+                const res = await fetch('/api/train', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const r = await res.json();
+                showAdminToast(r.message || 'Knowledge updated!');
+                trainForm.reset();
+                loadKnowledge();
+            } catch (e) {
+                showAdminToast('Training failed', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Commit to Knowledge Base';
+            }
+        };
+
+        // URL Param Detection
+        const params = new URLSearchParams(window.location.search);
+        const trainName = params.get('train');
+        if (trainName) {
+            showTab('knowledge');
+            document.getElementById('trainName').value = trainName;
+            document.getElementById('trainForm').scrollIntoView();
+        }
+
+        // Init
+        fetchStats();
+    </script>
+</body>
+
+</html>

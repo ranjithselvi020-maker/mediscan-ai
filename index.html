@@ -8,8 +8,11 @@
   <meta name="description"
     content="AI-powered medical image analysis and prescription reading. Free, instant, 95%+ accuracy.">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00c8ff">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
 </head>
 
 <body>
@@ -52,7 +55,7 @@
       <span data-i18n="hero.badge" id="brandNameHero">Mediscan-AI · Powered by Clinical AI Engine</span>
     </div>
     <h1><span data-i18n="hero.h1a">Intelligent</span> <span><span data-i18n="hero.h1b">Medical
-          Diagnostics</span></span><br><span data-i18n="hero.h1c">at Your Fingertips</span></h1>
+          Diagnostics</span></span><br> <span data-i18n="hero.h1c">at Your Fingertips</span></h1>
     <p data-i18n="hero.sub">Upload medical scans for instant AI analysis, or paste your prescription text for a detailed
       medicine breakdown.
       Supports Chest X-Ray, Brain CT/MRI, Bone X-Ray, Abdomen CT, Spine X-Ray, and Dental OPG.</p>
@@ -160,7 +163,16 @@
         </div>
 
         <!-- Scan Results -->
-        <div class="glass results-panel mt-16" id="scanResultsPanel"></div>
+        <div class="glass results-panel mt-16" id="scanResultsPanel">
+          <div id="scanSkeleton" style="display:none">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-img"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text" style="width:85%"></div>
+            <div class="skeleton skeleton-text" style="width:70%"></div>
+          </div>
+          <div id="scanContent"></div>
+        </div>
       </div>
 
       <!-- PRESCRIPTION READER -->
@@ -172,16 +184,29 @@
 
           <!-- Input Mode Tabs -->
           <div class="rx-tabs-inner" style="margin-bottom:20px">
-            <button class="rx-tab active" id="rxImgTab" onclick="switchRxMode('image')">📷 Upload Image</button>
+            <button class="rx-tab active" id="rxImgTab" onclick="switchRxMode('image')">📷 Upload/Camera</button>
             <button class="rx-tab" id="rxTxtTab" onclick="switchRxMode('text')">✏️ Paste Text</button>
           </div>
 
-          <!-- IMAGE UPLOAD MODE -->
+          <!-- IMAGE / CAMERA MODE -->
           <div id="rxImageSection">
+            <div id="cameraContainer"
+              style="display:none;position:relative;margin-bottom:16px;border-radius:15px;overflow:hidden;background:#000;border:1px solid var(--border)">
+              <video id="rxVideo" autoplay playsinline style="width:100%;display:block"></video>
+              <canvas id="rxCaptureCanvas" style="display:none"></canvas>
+              <div style="position:absolute;bottom:15px;left:0;right:0;display:flex;justify-content:center;gap:12px">
+                <button class="btn btn-primary btn-sm" id="captureBtn">📸 Capture</button>
+                <button class="btn btn-secondary btn-sm" id="closeCamBtn">✕ Close</button>
+              </div>
+            </div>
+
             <div class="drop-zone" id="rxDropZone" style="padding:36px 20px">
               <span class="drop-icon">🧾</span>
               <div class="drop-title">Drag &amp; Drop or Click to Upload Prescription</div>
-              <div class="drop-sub">Printed or Handwritten · PNG, JPG, JPEG, BMP, TIFF · Max 20MB</div>
+              <div class="drop-sub">Printed or Handwritten · PNG, JPG, JPEG, BMP, TIFF</div>
+              <div style="margin-top:15px">
+                <button class="btn btn-outline btn-sm" id="openCamBtn">📷 Use Camera</button>
+              </div>
               <img class="preview-img" id="rxPreviewImg" alt="Prescription Preview">
               <input type="file" id="rxFileInput" accept="image/*">
             </div>
@@ -201,7 +226,15 @@ Inj. Insulin 10U HS"></textarea>
           </div>
         </div>
 
-        <div id="rxResultsPanel" class="mt-16" style="display:none"></div>
+        <div id="rxResultsPanel" class="mt-16" style="display:none">
+          <div id="rxSkeleton" style="display:none;padding:20px" class="glass">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton-text skeleton" style="width:40%"></div>
+            <div class="skeleton-text skeleton" style="width:90%;height:60px;margin-top:15px"></div>
+            <div class="skeleton-text skeleton" style="width:100%;height:100px;margin-top:15px"></div>
+          </div>
+          <div id="rxContent"></div>
+        </div>
       </div>
 
       <!-- MEDICINE SEARCH -->
@@ -232,106 +265,93 @@ Inj. Insulin 10U HS"></textarea>
           </div>
         </div>
 
-        <!-- TRAIN AI PANEL -->
-        <div class="glass" style="padding:24px;margin-top:16px">
-          <div class="panel-title" style="font-size:.95rem;margin-bottom:4px">🧠 Train AI — Add Custom Medicine</div>
-          <div class="panel-sub" style="margin-bottom:16px">Add a new medicine to Mediscan's knowledge base. It will
-            immediately appear in search and prescription analysis.</div>
-          <form id="trainForm" autocomplete="off">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-              <div>
-                <label style="font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:4px">Medicine Name
-                  *</label>
-                <input id="trainName" type="text" placeholder="e.g. Pantoprazole" required
-                  style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:.85rem">
-              </div>
-              <div>
-                <label style="font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:4px">Category</label>
-                <input id="trainCategory" type="text" placeholder="e.g. PPI, Antibiotic"
-                  style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:.85rem">
-              </div>
-            </div>
-            <div style="margin-bottom:12px">
-              <label style="font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:4px">Uses
-                (comma-separated)</label>
-              <input id="trainUses" type="text" placeholder="e.g. GORD, Peptic ulcer, H. pylori"
-                style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:.85rem">
-            </div>
-            <div style="margin-bottom:12px">
-              <label style="font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:4px">Dosage</label>
-              <input id="trainDosage" type="text" placeholder="e.g. 40mg OD before breakfast"
-                style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:.85rem">
-            </div>
-            <div style="margin-bottom:16px">
-              <label style="font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:4px">Warnings
-                (comma-separated)</label>
-              <input id="trainWarnings" type="text" placeholder="e.g. Hypomagnesaemia, B12 deficiency"
-                style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:.85rem">
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%">🧠 Train Mediscan AI</button>
-          </form>
-        </div>
-      </div>
+        <!-- CHAT INTERFACE -->
+        <div class="glass mt-16" style="padding:20px">
+          <div class="panel-title">💬 Ask Mediscan AI</div>
+          <div class="panel-sub">Ask questions about scans, medicines, or medical conditions.</div>
 
-    </div><!-- end left column -->
+          <div class="chat-container" style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+            <div id="chatMessages"
+              style="max-height:300px;overflow-y:auto;padding:10px;background:rgba(0,0,0,0.1);border-radius:10px;font-size:0.85rem;display:flex;flex-direction:column;gap:8px">
+              <div class="bot-msg">👋 Hello! I'm your AI assistant. How can I help you today?</div>
+            </div>
 
-    <!-- RIGHT SIDEBAR -->
-    <div class="sidebar">
+            <div id="aiReasoning" class="glass"
+              style="display:none;padding:12px 16px;border-left:4px solid var(--accent);background:rgba(0,0,0,0.2)">
+              <div
+                style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:8px;font-weight:700">
+                🧠 AI Reasoning Engine</div>
+              <div id="reasoningSteps" style="font-size:0.78rem;color:var(--text-muted);line-height:1.5"></div>
+            </div>
 
-      <!-- Image Quality -->
-      <div class="glass quality-panel" id="qualityPanel" style="display:none">
-        <div class="quality-title">📊 Image Quality Report</div>
-        <div class="quality-metric">
-          <label>Sharpness <span id="q_sharpness_val">—</span></label>
-          <div class="quality-bar">
-            <div class="quality-bar-fill" id="q_sharpness" style="width:0"></div>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="chatInput" placeholder="Ask about symptoms, medicines..."
+                style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:.85rem">
+              <button class="btn btn-primary" id="chatBtn" style="width:auto;padding:0 20px">Send</button>
+            </div>
           </div>
         </div>
-        <div class="quality-metric">
-          <label>Brightness <span id="q_brightness_val">—</span></label>
-          <div class="quality-bar">
-            <div class="quality-bar-fill" id="q_brightness" style="width:0"></div>
+
+      </div><!-- end left column -->
+
+      <!-- RIGHT SIDEBAR -->
+      <div class="sidebar">
+
+        <!-- Image Quality -->
+        <div class="glass quality-panel" id="qualityPanel" style="display:none">
+          <div class="quality-title">📊 Image Quality Report</div>
+          <div class="quality-metric">
+            <label>Sharpness <span id="q_sharpness_val">—</span></label>
+            <div class="quality-bar">
+              <div class="quality-bar-fill" id="q_sharpness" style="width:0"></div>
+            </div>
+          </div>
+          <div class="quality-metric">
+            <label>Brightness <span id="q_brightness_val">—</span></label>
+            <div class="quality-bar">
+              <div class="quality-bar-fill" id="q_brightness" style="width:0"></div>
+            </div>
+          </div>
+          <div class="quality-metric">
+            <label>Contrast <span id="q_contrast_val">—</span></label>
+            <div class="quality-bar">
+              <div class="quality-bar-fill" id="q_contrast" style="width:0"></div>
+            </div>
+          </div>
+          <div id="qualityIssues"></div>
+        </div>
+
+        <!-- Live Stats -->
+        <div class="glass" style="padding:20px" id="liveStatsCard">
+          <div class="panel-title" style="font-size:.9rem;margin-bottom:12px">📈 Live Stats</div>
+          <div id="liveStatsContent" style="font-size:.8rem;color:var(--text-muted);line-height:1.8">Loading…</div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="glass" style="padding:20px;margin-top:16px">
+          <div class="panel-title" style="font-size:.9rem;margin-bottom:12px">ℹ️ How It Works</div>
+          <div style="font-size:.8rem;color:var(--text-muted);line-height:1.7">
+            <div style="margin-bottom:8px">1️⃣ <strong>Select</strong> scan type</div>
+            <div style="margin-bottom:8px">2️⃣ <strong>Upload</strong> medical image or <strong>Paste</strong>
+              prescription text</div>
+            <div style="margin-bottom:8px">3️⃣ <strong>Get</strong> instant findings, report &amp; confidence</div>
+            <div style="margin-bottom:8px">4️⃣ <strong>Search</strong> 500+ medicines by name or condition</div>
+            <div>5️⃣ <strong>Translate 🇮🇳</strong> report to Tamil if needed</div>
+          </div>
+          <div
+            style="margin-top:14px;padding:10px;background:rgba(255,77,109,.05);border:1px solid rgba(255,77,109,.15);border-radius:8px;font-size:.75rem;color:var(--danger)">
+            ⚠️ For informational purposes only. Always consult a qualified medical professional.
           </div>
         </div>
-        <div class="quality-metric">
-          <label>Contrast <span id="q_contrast_val">—</span></label>
-          <div class="quality-bar">
-            <div class="quality-bar-fill" id="q_contrast" style="width:0"></div>
-          </div>
-        </div>
-        <div id="qualityIssues"></div>
-      </div>
 
-      <!-- Live Stats -->
-      <div class="glass" style="padding:20px" id="liveStatsCard">
-        <div class="panel-title" style="font-size:.9rem;margin-bottom:12px">📈 Live Stats</div>
-        <div id="liveStatsContent" style="font-size:.8rem;color:var(--text-muted);line-height:1.8">Loading…</div>
-      </div>
+      </div><!-- end sidebar -->
 
-      <!-- Info Card -->
-      <div class="glass" style="padding:20px;margin-top:16px">
-        <div class="panel-title" style="font-size:.9rem;margin-bottom:12px">ℹ️ How It Works</div>
-        <div style="font-size:.8rem;color:var(--text-muted);line-height:1.7">
-          <div style="margin-bottom:8px">1️⃣ <strong>Select</strong> scan type</div>
-          <div style="margin-bottom:8px">2️⃣ <strong>Upload</strong> medical image or <strong>Paste</strong>
-            prescription text</div>
-          <div style="margin-bottom:8px">3️⃣ <strong>Get</strong> instant findings, report &amp; confidence</div>
-          <div style="margin-bottom:8px">4️⃣ <strong>Search</strong> 500+ medicines by name or condition</div>
-          <div>5️⃣ <strong>Translate 🇮🇳</strong> report to Tamil if needed</div>
-        </div>
-        <div
-          style="margin-top:14px;padding:10px;background:rgba(255,77,109,.05);border:1px solid rgba(255,77,109,.15);border-radius:8px;font-size:.75rem;color:var(--danger)">
-          ⚠️ For informational purposes only. Always consult a qualified medical professional.
-        </div>
-      </div>
+    </div><!-- end main-layout -->
 
-    </div><!-- end sidebar -->
-
-  </div><!-- end main-layout -->
-
-  <script src="js/script.js"></script>
-  <script src="js/theme_lang.js"></script>
-  <script src="js/animations.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/theme_lang.js"></script>
+    <script src="js/animations.js"></script>
 </body>
 
 </html>

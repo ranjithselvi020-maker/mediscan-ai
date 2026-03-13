@@ -7,237 +7,248 @@
     <title>Scan History — MediScan AI</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
+        :root {
+            --bg-dark: #040d1a;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --accent: #00c8ff;
+            --accent2: #0072ff;
+            --accent3: #00ffa3;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 20px;
+            --shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 0%, #0a192f 0%, var(--bg-dark) 100%);
+            min-height: 100vh;
+        }
+
         .history-page {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 32px 24px 64px;
+            padding: 40px 24px 80px;
+        }
+
+        .glass {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
         }
 
         .history-head {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 28px;
+            align-items: flex-end;
+            margin-bottom: 40px;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 24px;
         }
 
         .filter-tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 6px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            width: fit-content;
+            margin-bottom: 32px;
         }
 
         .filter-tab {
-            padding: 7px 18px;
+            padding: 10px 24px;
             border-radius: 50px;
-            border: 1px solid var(--border);
-            background: var(--bg-input);
+            border: none;
+            background: transparent;
             color: var(--text-muted);
-            font-size: .82rem;
+            font-size: .88rem;
             font-weight: 600;
             cursor: pointer;
-            font-family: inherit;
-            transition: all .2s;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .filter-tab.active {
-            background: linear-gradient(135deg, var(--accent2), var(--accent));
-            border-color: transparent;
+            background: var(--accent);
             color: #fff;
-            box-shadow: 0 4px 16px rgba(0, 200, 255, .3);
+            box-shadow: 0 8px 20px rgba(0, 200, 255, 0.3);
         }
 
         .hist-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
         }
 
         .hist-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 18px 20px;
-            transition: all .25s;
-            animation: fadeIn .4s ease both;
+            position: relative;
+            padding: 24px;
+            overflow: hidden;
+            transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
         }
 
         .hist-card:hover {
+            transform: translateY(-6px);
             border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(0, 200, 255, .15);
-            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 200, 255, 0.15);
+        }
+
+        .hist-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent3));
+            opacity: 0.6;
         }
 
         .hist-card-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .hist-badge {
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 50px;
-            font-size: .75rem;
-            font-weight: 700;
-        }
-
-        .badge-scan {
-            background: rgba(0, 200, 255, .1);
-            color: var(--accent);
-            border: 1px solid rgba(0, 200, 255, .3);
-        }
-
-        .badge-rx {
-            background: rgba(0, 255, 163, .1);
-            color: var(--accent3);
-            border: 1px solid rgba(0, 255, 163, .3);
-        }
-
-        .hist-conf {
-            font-size: 1.1rem;
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             font-weight: 800;
         }
 
-        .hist-scan-type {
-            font-size: .95rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 6px;
+        .badge-scan {
+            background: rgba(0, 200, 255, 0.12);
+            color: var(--accent);
+            border: 1px solid rgba(0, 200, 255, 0.3);
+        }
+
+        .badge-rx {
+            background: rgba(0, 255, 163, 0.12);
+            color: var(--accent3);
+            border: 1px solid rgba(0, 255, 163, 0.3);
+        }
+
+        .hist-conf {
+            font-size: 1.25rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: -0.5px;
         }
 
         .hist-findings {
-            font-size: .78rem;
-            color: var(--text-muted);
+            font-size: .85rem;
+            color: var(--text);
             line-height: 1.6;
-            margin-bottom: 12px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid var(--border);
         }
 
         .hist-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: .73rem;
+            font-size: .75rem;
             color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
         }
 
-        .hist-icon {
-            font-size: 2rem;
-        }
-
-        .expand-btn {
-            background: none;
-            border: none;
-            color: var(--accent);
-            font-size: .78rem;
-            cursor: pointer;
-            font-family: inherit;
-            padding: 4px 0;
-            margin-top: 8px;
-            display: block;
-            font-weight: 600;
-        }
-
-        .expand-body {
-            display: none;
-            margin-top: 12px;
-            padding: 12px;
-            background: rgba(0, 200, 255, .04);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: .78rem;
-            line-height: 1.7;
-            color: var(--text-muted);
+        .hist-dt {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .hist-del-btn {
-            background: none;
-            border: 1px solid rgba(255, 77, 109, .3);
-            color: var(--danger);
-            padding: 4px 10px;
+            background: rgba(255, 77, 109, 0.08);
+            border: 1px solid rgba(255, 77, 109, 0.2);
+            color: #ff4d6d;
+            padding: 6px 14px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: .72rem;
+            font-size: .75rem;
+            font-weight: 600;
             transition: all .2s;
-            font-family: inherit;
         }
 
         .hist-del-btn:hover {
-            background: rgba(255, 77, 109, .1);
-        }
-
-        .stats-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
+            background: #ff4d6d;
+            color: #fff;
+            border-color: transparent;
         }
 
         .stat-pill {
             background: var(--bg-card);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 14px 20px;
+            border-radius: 18px;
+            padding: 20px;
             flex: 1;
-            min-width: 120px;
-            backdrop-filter: blur(20px);
+            min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .stat-pill-val {
-            font-size: 1.4rem;
-            font-weight: 800;
+            font-size: 1.8rem;
+            font-weight: 900;
         }
 
         .stat-pill-label {
-            font-size: .72rem;
+            font-size: .75rem;
             color: var(--text-muted);
-            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .search-container {
+            position: relative;
+            width: 300px;
         }
 
         .search-input {
-            background: var(--bg-input);
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
-            color: var(--text);
+            color: #fff;
             border-radius: 50px;
-            padding: 10px 18px;
-            font-family: inherit;
-            font-size: .85rem;
-            outline: none;
-            transition: border .2s;
+            padding: 12px 20px;
+            font-size: .9rem;
+            transition: all .3s;
         }
 
         .search-input:focus {
+            background: rgba(255, 255, 255, 0.05);
             border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.1);
+            outline: none;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 64px 24px;
-            color: var(--text-muted);
-        }
+        @media (max-width: 768px) {
+            .history-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
-        .empty-icon {
-            font-size: 3rem;
-            display: block;
-            margin-bottom: 12px;
+            .search-container {
+                width: 100%;
+            }
+
+            .hist-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -263,33 +274,41 @@
         <div class="history-head">
             <div>
                 <h1
-                    style="font-size:1.8rem;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
-                    📋 Scan History</h1>
-                <p style="color:var(--text-muted);font-size:.88rem;margin-top:6px">All saved analyses — timestamped and
-                    searchable</p>
+                    style="font-size:2.8rem;font-weight:900;background:linear-gradient(135deg, #fff, #94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;font-family:'Outfit', sans-serif">
+                    Scan History
+                </h1>
+                <p style="color:var(--text-muted);font-size:1rem;font-weight:500">
+                    Comprehensive clinical audit path for scanning records.
+                </p>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <input id="histSearch" type="text" class="search-input" style="width:220px;"
-                    placeholder="🔍 Search history…">
-                <button class="btn btn-danger btn-sm" id="clearAllBtn">🗑 Clear All</button>
-                <a href="index.html" class="btn btn-outline btn-sm">+ New Scan</a>
+            <div class="search-container">
+                <input id="histSearch" type="text" class="search-input" placeholder="🔍 Search records…">
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div
+            style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All Records</button>
+                <button class="filter-tab" data-filter="scan">🔬 Scans</button>
+                <button class="filter-tab" data-filter="rx">💊 Prescriptions</button>
+            </div>
+            <div style="display:flex;gap:12px">
+                <button class="btn btn-outline btn-sm" id="clearAllBtn"
+                    style="color:#ff4d6d;border-color:rgba(255,77,109,0.2)">🗑 Clear Store</button>
+                <a href="index.html" class="btn btn-primary btn-sm" style="padding:10px 20px">+ New Diagnostic</a>
             </div>
         </div>
 
         <!-- Stats -->
-        <div class="stats-row" id="historyStats"></div>
-
-        <!-- Filter Tabs -->
-        <div class="filter-tabs">
-            <button class="filter-tab active" data-filter="all">All Records</button>
-            <button class="filter-tab" data-filter="scan">🔬 Medical Scans</button>
-            <button class="filter-tab" data-filter="rx">💊 Prescriptions</button>
-        </div>
+        <div class="stats-row" id="historyStats" style="margin-bottom:40px"></div>
 
         <!-- Cards Grid -->
         <div id="historyContent">
-            <div class="empty-state"><span class="empty-icon">📋</span>
-                <p>Loading scan history…</p>
+            <div class="empty-state">
+                <span class="empty-icon" style="opacity:0.3">📋</span>
+                <p>Initializing historical context…</p>
             </div>
         </div>
     </div>
@@ -299,9 +318,9 @@
         let activeFilter = 'all';
 
         const SCAN_ICONS = {
-            'Chest X-Ray': '🫁', 'Brain CT': '🧠', 'Brain MRI': '🧠',
-            'Bone X-Ray': '🦴', 'Abdomen CT': '🫀', 'Spine X-Ray': '🔩',
-            'Dental OPG': '🦷', 'Prescription': '💊', 'Medical Image': '🏥'
+            'Chest X-Ray': '🫁', 'Brain CT/MRI': '🧠', 'Brain CT': '🧠', 'Brain MRI': '🧠',
+            'Bone X-Ray': '🦴', 'Abdomen CT': '🍱', 'Spine X-Ray': '🦴',
+            'Dental OPG': '🦷', 'Prescription': '🧾', 'Medical Image': '🏥'
         };
 
         async function loadHistory() {
@@ -312,7 +331,7 @@
                 renderStats(allScans);
                 renderCards(allScans);
             } catch (e) {
-                document.getElementById('historyContent').innerHTML = `<div class="empty-state"><span class="empty-icon">⚠️</span><p>Failed to load: ${e.message}</p></div>`;
+                document.getElementById('historyContent').innerHTML = `<div class="empty-state"><span class="empty-icon">⚠️</span><p>Connection lost: ${e.message}</p></div>`;
             }
         }
 
@@ -322,13 +341,13 @@
             const avgConf = total ? (scans.reduce((sum, s) => sum + s.confidence, 0) / total).toFixed(1) : '—';
             const highConf = scans.filter(s => s.confidence >= 90).length;
             document.getElementById('historyStats').innerHTML = [
-                ['📊 Total Scans', total, '#00c8ff'],
-                ['🔬 Medical Images', total - rxCount, '#00c8ff'],
-                ['💊 Prescriptions', rxCount, '#00ffa3'],
-                ['🎯 Avg Confidence', avgConf + '%', '#ffd166'],
-                ['✅ High Accuracy', highConf, '#06d6a0'],
+                ['📊 Total Audit', total, '#fff'],
+                ['🔬 Diagnostics', total - rxCount, 'var(--accent)'],
+                ['🧾 Scripts', rxCount, 'var(--accent3)'],
+                ['🎯 Accuracy', avgConf + '%', 'var(--warning)'],
+                ['✅ Validated', highConf, 'var(--success)'],
             ].map(([label, val, color]) => `
-        <div class="stat-pill">
+        <div class="stat-pill glass">
           <div class="stat-pill-val" style="color:${color}">${val}</div>
           <div class="stat-pill-label">${label}</div>
         </div>`).join('');
@@ -337,40 +356,41 @@
         function renderCards(scans) {
             const wrap = document.getElementById('historyContent');
             if (!scans.length) {
-                wrap.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><p>No records here. <a href="/" style="color:var(--accent)">Upload your first scan →</a></p></div>`;
+                wrap.innerHTML = `<div class="empty-state"><span class="empty-icon" style="opacity:0.2">📭</span><p>No historical records found. <a href="/" style="color:var(--accent);font-weight:600">Start a new scan →</a></p></div>`;
                 return;
             }
             wrap.innerHTML = `<div class="hist-grid">${scans.map((s, idx) => {
                 const dt = new Date(s.timestamp);
-                const dateStr = dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                const dateStr = dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
                 const timeStr = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
                 const isRx = s.scan_type === 'Prescription';
                 const icon = SCAN_ICONS[s.scan_type] || '🏥';
                 const findings = s.result?.findings || [];
-                const findStr = Array.isArray(findings)
-                    ? findings.slice(0, 3).join(', ') + (findings.length > 3 ? ` +${findings.length - 3} more` : '')
-                    : (s.result?.summary || '—');
+                const condition = s.result?.condition || (isRx ? 'Prescription Analysis' : '');
+
+                let findStr = '';
+                if (isRx) {
+                    findStr = Array.isArray(findings) ? findings.join(', ') : (s.result?.summary || '—');
+                } else {
+                    findStr = `${condition}: ${findings.slice(0, 2).join(', ')}${findings.length > 2 ? '...' : ''}`;
+                }
+
                 const confColor = s.confidence >= 90 ? 'var(--success)' : s.confidence >= 70 ? 'var(--warning)' : 'var(--danger)';
-                const fullResult = JSON.stringify(s.result, null, 2);
+
                 return `
-          <div class="hist-card" style="animation-delay:${idx * 0.05}s">
+          <div class="hist-card glass" style="animation: fadeIn .4s ease both ${idx * 0.05}s">
             <div class="hist-card-top">
-              <div style="display:flex;align-items:center;gap:10px">
-                <span class="hist-icon">${icon}</span>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="font-size:1.5rem">${icon}</span>
                 <span class="hist-badge ${isRx ? 'badge-rx' : 'badge-scan'}">${s.scan_type}</span>
               </div>
               <span class="hist-conf" style="color:${confColor}">${s.confidence.toFixed(1)}%</span>
             </div>
-            <div class="hist-findings">${findStr || 'No findings recorded.'}</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-bottom:8px;color:#fff">${condition || 'General Analysis'}</div>
+            <div class="hist-findings">${findStr}</div>
             <div class="hist-meta">
-              <span>📅 ${dateStr} · ${timeStr}</span>
+              <div class="hist-dt"><span>📅</span> ${dateStr} · ${timeStr}</div>
               <button class="hist-del-btn" onclick="deleteRecord(${s.id},this)">🗑 Delete</button>
-            </div>
-            <button class="expand-btn" onclick="toggleExpand(this)">▼ View Full Report</button>
-            <div class="expand-body">
-              <div style="margin-bottom:6px;color:var(--text-muted)"><strong>File:</strong> ${s.filename}</div>
-              <div style="margin-bottom:6px"><strong>ID:</strong> #${s.id}</div>
-              <pre style="white-space:pre-wrap;font-family:monospace;font-size:.72rem;color:var(--text-muted);overflow:auto;max-height:160px">${findStr}</pre>
             </div>
           </div>`;
             }).join('')}</div>`;

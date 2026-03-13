@@ -5,7 +5,7 @@ from datetime import datetime, timezone, date
 from werkzeug.utils import secure_filename
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(BASE_DIR,'mediscan.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploads')
@@ -74,6 +74,10 @@ def index():
 @app.route('/history')
 def history():
     return render_template('history.html')
+
+@app.route('/admin')
+def admin_dashboard():
+    return render_template('admin.html')
 
 @app.route('/report')
 def project_report():
@@ -204,9 +208,13 @@ def search_medicine():
             entry = info.copy()
             entry['name'] = name.replace('_',' ').title()
             results.append(entry)
-    # Boost exact name matches to top
-    results.sort(key=lambda r: (0 if q in r['name'].lower() else 1))
-    return jsonify({"results": results[:20], "total": len(results)})
+    # Sort: Exact name matches first, then name partials, then the rest
+    results.sort(key=lambda r: (
+        0 if q == r['name'].lower() else 
+        1 if q in r['name'].lower() else 
+        2
+    ))
+    return jsonify({"results": results[:25], "total": len(results)})
 
 # ── Drug Interactions ─────────────────────────────────────────────────────────
 @app.route('/api/check-interactions', methods=['POST'])
@@ -373,48 +381,52 @@ TAMIL_MAP = {
     # General
     "There is":"இங்கே","no improvement":"முன்னேற்றம் இல்லை","weeks":"வாரங்கள்",
     "daily":"தினமும்","pain":"வலி","swelling":"வீக்கம்","fever":"காய்ச்சல்",
+    "cough":"இருமல்","shortness of breath":"மூச்சுத் திணறல்","headache":"தலைவலி",
+    "nausea":"குமட்டல்","vomiting":"வாந்தி","fatigue":"சோர்வு","dizziness":"தலைச்சுற்றல்",
+    "blurred vision":"மங்கலான பார்வை","chest pain":"மார்பு வலி","back pain":"முதுகு வலி",
+    "joint pain":"மூட்டு வலி","muscle pain":"தசை வலி","inflammation":"வீக்கம்",
+    "healing":"குணமடைதல்","stable":"நிலையானது","improving":"முன்னேற்றம்","worsening":"மோசமடைதல்",
 }
+
+# Pre-compile translation regex for performance
+_TRANS_KEYS = sorted(TAMIL_MAP.keys(), key=len, reverse=True)
+_TRANS_PATTERN = re.compile(r'\b(' + '|'.join(re.escape(k) for k in _TRANS_KEYS) + r')\b', re.IGNORECASE)
 
 @app.route('/api/translate', methods=['POST'])
 def translate_report():
     data = request.json or {}
-    text = data.get('text','')
-    if not text:
-        return jsonify({"translated":"","language":"Tamil"})
-    result = text
-    sorted_keys = sorted(TAMIL_MAP.keys(), key=len, reverse=True)
-    count = 0
-    for eng in sorted_keys:
-        tam = TAMIL_MAP[eng]
-        pattern = re.compile(r'\b' + re.escape(eng) + r'\b', re.IGNORECASE)
-        new_r = pattern.sub(tam, result)
-        if new_r != result:
-            count += 1
-        result = new_r
-    if count == 0:
-        result = "[Tamil Translation] " + text
-    return jsonify({"translated": result, "language":"Tamil", "terms_translated": count})
+    result = data.get('report', '')
+    if not result: return jsonify({"translated": ""})
+    
+    # Single-pass regex translation
+    def replace(match):
+        word = match.group(0).lower()
+        # Find exact case-insensitive match in map
+        for k in _TRANS_KEYS:
+            if k.lower() == word:
+                return TAMIL_MAP[k]
+        return match.group(0)
+
+    translated = _TRANS_PATTERN.sub(replace, result)
+    return jsonify({"translated": translated})
 
 @app.route('/api/translate-tanglish', methods=['POST'])
 def translate_tanglish():
     data = request.json or {}
-    text = data.get('text','')
-    if not text:
-        return jsonify({"translated":"","language":"Tanglish"})
-    result = text
-    sorted_keys = sorted(TAMIL_MAP.keys(), key=len, reverse=True)
-    count  = 0
-    for eng in sorted_keys:
-        tam = TAMIL_MAP[eng]
-        pattern = re.compile(r'\b' + re.escape(eng) + r'\b', re.IGNORECASE)
-        def replace_tanglish(m):
-            return f"{m.group(0)} ({tam})"
-        new_r, n = pattern.subn(replace_tanglish, result)
-        count += n
-        result = new_r
-    if count == 0:
-        result = "[Tanglish Translation] " + text
-    return jsonify({"translated": result, "language":"Tanglish", "terms_translated": count})
+    result = data.get('report', '')
+    if not result: return jsonify({"translated": ""})
+    
+    # Tanglish uses a slightly different map or logic if needed, 
+    # but for now we reuse the same efficient pattern
+    def replace(match):
+        word = match.group(0).lower()
+        for k in _TRANS_KEYS:
+            if k.lower() == word:
+                return f"{match.group(0)} ({TAMIL_MAP[k]})" # Keep original English word and add Tamil in parentheses
+        return match.group(0)
+
+    translated = _TRANS_PATTERN.sub(replace, result)
+    return jsonify({"translated": translated})
 
 if __name__ == '__main__':
     # To share on local Wi-Fi, visit http://<your-ip>:5000
