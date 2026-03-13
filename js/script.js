@@ -478,6 +478,8 @@ function initUpload() {
     if (!input._file) { showToast('Please select a medical image first.', 'error'); return; }
     setLoading(btn, true, '⏳ Analyzing…');
     loadBar.style.display = 'block';
+    const beam = $('#scanBeam');
+    if (beam) beam.style.display = 'block';
     toggleSkeleton('scan', true);
     try {
       const form = new FormData();
@@ -506,6 +508,8 @@ function initUpload() {
     } finally {
       setLoading(btn, false);
       loadBar.style.display = 'none';
+      const beam = $('#scanBeam');
+      if (beam) beam.style.display = 'none';
     }
   });
 }
@@ -996,7 +1000,12 @@ async function initChat() {
   if (!input || !btn || !msgs) return;
 
   const addMsg = (text, isBot = true) => {
-    const m = el('div', isBot ? 'bot-msg' : 'user-msg', renderMarkdown(text));
+    const m = el('div', isBot ? 'bot-msg' : 'user-msg');
+    m.style.animation = 'fadeInUp 0.3s ease-out';
+    m.innerHTML = isBot ? `<div style="display:flex;gap:10px">
+      <div style="font-size:1.2rem">🤖</div>
+      <div class="msg-content">${renderMarkdown(text)}</div>
+    </div>` : renderMarkdown(text);
     msgs.appendChild(m);
     msgs.scrollTop = msgs.scrollHeight;
   };

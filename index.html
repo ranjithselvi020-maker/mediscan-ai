@@ -134,7 +134,10 @@
             <div class="drop-sub" data-i18n="scan.dropsub">PNG, JPG, JPEG, BMP, TIFF · Max 20MB</div>
             <!-- Image + Heatmap Canvas stacked -->
             <div style="position:relative;display:inline-block;width:100%">
-              <img class="preview-img" id="previewImg" alt="Preview" style="display:block">
+              <div class="preview-container" id="previewContainer" style="display:block">
+                <div class="scan-beam" id="scanBeam"></div>
+                <img id="previewImg" class="preview-img" alt="Scan Preview">
+              </div>
               <canvas id="heatmapCanvas"
                 style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;border-radius:10px"></canvas>
             </div>
