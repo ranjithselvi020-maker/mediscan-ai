@@ -59,6 +59,26 @@
         .admin-nav-item.active {
             background: rgba(59, 130, 246, 0.1);
             color: var(--accent-admin);
+            transform: translateX(4px);
+        }
+
+        /* Fix conflict with global nav styles */
+        #adminNav {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 4px;
+            background: transparent !important;
+            height: auto !important;
+            border: none !important;
+            padding: 0 !important;
+            backdrop-filter: none !important;
+            position: relative !important;
+            top: auto !important;
+        }
+
+        #adminNav .admin-nav-item {
+            display: flex !important;
+            width: 100%;
         }
 
         .section-panel {
@@ -89,7 +109,8 @@
             padding: 24px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            align-items: flex-start;
+            gap: 12px;
             transition: all 0.3s;
         }
 

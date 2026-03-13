@@ -363,10 +363,11 @@ nav {
 
 .hero p {
   color: var(--text-muted);
-  font-size: 1rem;
-  max-width: 580px;
-  margin: 0 auto 28px;
-  line-height: 1.6;
+  font-size: 1.05rem;
+  max-width: 650px;
+  margin: 0 auto 32px;
+  line-height: 1.7;
+  text-wrap: balance;
 }
 
 .hero-stats {
@@ -544,8 +545,8 @@ nav {
 .scan-selector {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin: 16px 0;
+  gap: 12px;
+  margin: 20px 0;
 }
 
 .scan-opt {
@@ -595,6 +596,8 @@ nav {
   background: linear-gradient(135deg, var(--accent2), var(--accent));
   color: #fff;
   width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
   justify-content: center;
 }
 
