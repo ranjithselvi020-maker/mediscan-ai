@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mediscan AI - Medical Imaging Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        .logo {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .status {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 4px;
+        }
+        
+        .status-indicator {
+            color: #4caf50;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .endpoints {
+            text-align: left;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .endpoints h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .endpoint {
+            font-family: monospace;
+            color: #667eea;
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            margin: 10px 5px;
+        }
+        
+        .button:hover {
+            background: #764ba2;
+        }
+        
+        .button.secondary {
+            background: #999;
+        }
+        
+        .button.secondary:hover {
+            background: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏥</div>
+        <h1>Mediscan AI</h1>
+        <p>Medical Imaging Analysis with Artificial Intelligence</p>
+        
+        <div class="status">
+            <div class="status-indicator">✓ Server Status: Running</div>
+            <div>The backend server is operational and ready to process requests.</div>
+        </div>
+        
+        <div class="endpoints">
+            <h3>Available Endpoints:</h3>
+            <div class="endpoint">GET /api/health</div>
+            <div class="endpoint">POST /api/analyze</div>
+            <div style="font-size: 0.85em; color: #999; margin-top: 10px;">More endpoints coming soon...</div>
+        </div>
+        
+        <button class="button" onclick="testHealth()">Test Connection</button>
+        <button class="button secondary" onclick="location.href='/api/health'">View Health</button>
+    </div>
+    
+    <script>
+        function testHealth() {
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    alert('Server Response:\n' + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Scan History — MediScan AI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .history-page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+
+        .history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .filter-tab {
+            padding: 7px 18px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: var(--bg-input);
+            color: var(--text-muted);
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s;
+        }
+
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(0, 200, 255, .3);
+        }
+
+        .hist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .hist-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            transition: all .25s;
+            animation: fadeIn .4s ease both;
+        }
+
+        .hist-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 200, 255, .15);
+            transform: translateY(-2px);
+        }
+
+        .hist-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .hist-badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .badge-scan {
+            background: rgba(0, 200, 255, .1);
+            color: var(--accent);
+            border: 1px solid rgba(0, 200, 255, .3);
+        }
+
+        .badge-rx {
+            background: rgba(0, 255, 163, .1);
+            color: var(--accent3);
+            border: 1px solid rgba(0, 255, 163, .3);
+        }
+
+        .hist-conf {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .hist-scan-type {
+            font-size: .95rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .hist-findings {
+            font-size: .78rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hist-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: .73rem;
+            color: var(--text-muted);
+        }
+
+        .hist-icon {
+            font-size: 2rem;
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: .78rem;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 4px 0;
+            margin-top: 8px;
+            display: block;
+            font-weight: 600;
+        }
+
+        .expand-body {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(0, 200, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: .78rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+        }
+
+        .hist-del-btn {
+            background: none;
+            border: 1px solid rgba(255, 77, 109, .3);
+            color: var(--danger);
+            padding: 4px 10px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: .72rem;
+            transition: all .2s;
+            font-family: inherit;
+        }
+
+        .hist-del-btn:hover {
+            background: rgba(255, 77, 109, .1);
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 20px;
+            flex: 1;
+            min-width: 120px;
+            backdrop-filter: blur(20px);
+        }
+
+        .stat-pill-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .stat-pill-label {
+            font-size: .72rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-input {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 50px;
+            padding: 10px 18px;
+            font-family: inherit;
+            font-size: .85rem;
+            outline: none;
+            transition: border .2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 64px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a class="nav-brand" href="index.html">
+            <svg class="nav-logo" viewBox="0 0 38 38" fill="none">
+                <circle cx="19" cy="19" r="18" stroke="#00c8ff" stroke-width="1.5" fill="rgba(0,200,255,.06)" />
+                <path d="M19 10v18M10 19h18" stroke="#00c8ff" stroke-width="2.5" stroke-linecap="round" />
+                <circle cx="19" cy="19" r="4" fill="#00c8ff" opacity=".7" />
+            </svg>
+            <div><span class="nav-title">MediScan AI</span><span class="nav-subtitle">Clinical Decision Support</span>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">🏠 Dashboard</a>
+            <a href="history.html" class="nav-link active">📋 History</a>
+        </div>
+    </nav>
+
+    <div class="history-page">
+        <div class="history-head">
+            <div>
+                <h1
+                    style="font-size:1.8rem;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                    📋 Scan History</h1>
+                <p style="color:var(--text-muted);font-size:.88rem;margin-top:6px">All saved analyses — timestamped and
+                    searchable</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <input id="histSearch" type="text" class="search-input" style="width:220px;"
+                    placeholder="🔍 Search history…">
+                <button class="btn btn-danger btn-sm" id="clearAllBtn">🗑 Clear All</button>
+                <a href="index.html" class="btn btn-outline btn-sm">+ New Scan</a>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row" id="historyStats"></div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All Records</button>
+            <button class="filter-tab" data-filter="scan">🔬 Medical Scans</button>
+            <button class="filter-tab" data-filter="rx">💊 Prescriptions</button>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="historyContent">
+            <div class="empty-state"><span class="empty-icon">📋</span>
+                <p>Loading scan history…</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allScans = [];
+        let activeFilter = 'all';
+
+        const SCAN_ICONS = {
+            'Chest X-Ray': '🫁', 'Brain CT': '🧠', 'Brain MRI': '🧠',
+            'Bone X-Ray': '🦴', 'Abdomen CT': '🫀', 'Spine X-Ray': '🔩',
+            'Dental OPG': '🦷', 'Prescription': '💊', 'Medical Image': '🏥'
+        };
+
+        async function loadHistory() {
+            try {
+                const r = await fetch('/api/history');
+                allScans = await r.json();
+                if (allScans.error) throw new Error(allScans.error);
+                renderStats(allScans);
+                renderCards(allScans);
+            } catch (e) {
+                document.getElementById('historyContent').innerHTML = `<div class="empty-state"><span class="empty-icon">⚠️</span><p>Failed to load: ${e.message}</p></div>`;
+            }
+        }
+
+        function renderStats(scans) {
+            const total = scans.length;
+            const rxCount = scans.filter(s => s.scan_type === 'Prescription').length;
+            const avgConf = total ? (scans.reduce((sum, s) => sum + s.confidence, 0) / total).toFixed(1) : '—';
+            const highConf = scans.filter(s => s.confidence >= 90).length;
+            document.getElementById('historyStats').innerHTML = [
+                ['📊 Total Scans', total, '#00c8ff'],
+                ['🔬 Medical Images', total - rxCount, '#00c8ff'],
+                ['💊 Prescriptions', rxCount, '#00ffa3'],
+                ['🎯 Avg Confidence', avgConf + '%', '#ffd166'],
+                ['✅ High Accuracy', highConf, '#06d6a0'],
+            ].map(([label, val, color]) => `
+        <div class="stat-pill">
+          <div class="stat-pill-val" style="color:${color}">${val}</div>
+          <div class="stat-pill-label">${label}</div>
+        </div>`).join('');
+        }
+
+        function renderCards(scans) {
+            const wrap = document.getElementById('historyContent');
+            if (!scans.length) {
+                wrap.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><p>No records here. <a href="/" style="color:var(--accent)">Upload your first scan →</a></p></div>`;
+                return;
+            }
+            wrap.innerHTML = `<div class="hist-grid">${scans.map((s, idx) => {
+                const dt = new Date(s.timestamp);
+                const dateStr = dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                const timeStr = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                const isRx = s.scan_type === 'Prescription';
+                const icon = SCAN_ICONS[s.scan_type] || '🏥';
+                const findings = s.result?.findings || [];
+                const findStr = Array.isArray(findings)
+                    ? findings.slice(0, 3).join(', ') + (findings.length > 3 ? ` +${findings.length - 3} more` : '')
+                    : (s.result?.summary || '—');
+                const confColor = s.confidence >= 90 ? 'var(--success)' : s.confidence >= 70 ? 'var(--warning)' : 'var(--danger)';
+                const fullResult = JSON.stringify(s.result, null, 2);
+                return `
+          <div class="hist-card" style="animation-delay:${idx * 0.05}s">
+            <div class="hist-card-top">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="hist-icon">${icon}</span>
+                <span class="hist-badge ${isRx ? 'badge-rx' : 'badge-scan'}">${s.scan_type}</span>
+              </div>
+              <span class="hist-conf" style="color:${confColor}">${s.confidence.toFixed(1)}%</span>
+            </div>
+            <div class="hist-findings">${findStr || 'No findings recorded.'}</div>
+            <div class="hist-meta">
+              <span>📅 ${dateStr} · ${timeStr}</span>
+              <button class="hist-del-btn" onclick="deleteRecord(${s.id},this)">🗑 Delete</button>
+            </div>
+            <button class="expand-btn" onclick="toggleExpand(this)">▼ View Full Report</button>
+            <div class="expand-body">
+              <div style="margin-bottom:6px;color:var(--text-muted)"><strong>File:</strong> ${s.filename}</div>
+              <div style="margin-bottom:6px"><strong>ID:</strong> #${s.id}</div>
+              <pre style="white-space:pre-wrap;font-family:monospace;font-size:.72rem;color:var(--text-muted);overflow:auto;max-height:160px">${findStr}</pre>
+            </div>
+          </div>`;
+            }).join('')}</div>`;
+        }
+
+        function toggleExpand(btn) {
+            const body = btn.nextElementSibling;
+            const open = body.style.display === 'block';
+            body.style.display = open ? 'none' : 'block';
+            btn.textContent = open ? '▼ View Full Report' : '▲ Hide Report';
+        }
+
+        async function deleteRecord(id, btn) {
+            if (!confirm('Delete this record?')) return;
+            btn.textContent = '⏳'; btn.disabled = true;
+            await fetch('/api/history/delete/' + id, { method: 'DELETE' });
+            allScans = allScans.filter(s => s.id !== id);
+            renderStats(allScans); applyFilter();
+        }
+
+        function applyFilter() {
+            const q = document.getElementById('histSearch').value.toLowerCase();
+            let filtered = allScans;
+            if (activeFilter === 'scan') filtered = filtered.filter(s => s.scan_type !== 'Prescription');
+            if (activeFilter === 'rx') filtered = filtered.filter(s => s.scan_type === 'Prescription');
+            if (q) filtered = filtered.filter(s =>
+                s.scan_type.toLowerCase().includes(q) ||
+                s.filename.toLowerCase().includes(q) ||
+                JSON.stringify(s.result).toLowerCase().includes(q));
+            renderCards(filtered);
+        }
+
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeFilter = tab.dataset.filter;
+                applyFilter();
+            });
+        });
+
+        document.getElementById('histSearch').addEventListener('input', applyFilter);
+
+        document.getElementById('clearAllBtn').addEventListener('click', async () => {
+            if (!confirm('Delete ALL scan history? This cannot be undone.')) return;
+            await fetch('/api/history/clear', { method: 'DELETE' });
+            allScans = []; renderStats([]); applyFilter();
+        });
+
+        loadHistory();
+    </script>
+</body>
+
+</html>
