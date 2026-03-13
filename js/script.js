@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initQualityPanel();
   initChat();
   initPrescriptionCamera();
+  revealCards();
 
   // Show angle toolbar when scan file is picked
   const fi = $('#fileInput');
@@ -1086,4 +1087,24 @@ function initPrescriptionCamera() {
       showToast('Photo captured!', 'success');
     }, 'image/jpeg', 0.9);
   };
+}
+
+// ── Search-to-Train Integration ──────────────────────────────────────────
+async function showTrainWith(medName) {
+  const encodedName = encodeURIComponent(medName.charAt(0).toUpperCase() + medName.slice(1));
+  window.location.href = `admin.html?train=${encodedName}`;
+}
+
+// ── Reveal Animations (Scroll) ───────────────────────────────────────────
+function revealCards() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  $$('.reveal').forEach(el => observer.observe(el));
 }

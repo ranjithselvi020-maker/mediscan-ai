@@ -163,6 +163,13 @@
 </head>
 
 <body>
+    <div class="mesh-container">
+        <div class="mesh-blob blob-1"></div>
+        <div class="mesh-blob blob-2"></div>
+        <div class="mesh-blob blob-3"></div>
+    </div>
+    <div class="noise-overlay"></div>
+
     <div class="admin-layout">
         <aside class="sidebar">
             <div style="margin-bottom: 48px;">
@@ -175,7 +182,8 @@
             <nav id="adminNav">
                 <div class="admin-nav-item active" onclick="showTab('overview')">📊 Overview</div>
                 <div class="admin-nav-item" onclick="showTab('history')">📜 Scan History</div>
-                <div class="admin-nav-item" onclick="showTab('knowledge')">🧠 Knowledge Base</div>
+                <div class="admin-nav-item" onclick="showTab('knowledge')">📚 Knowledge Base</div>
+                <div class="admin-nav-item" onclick="showTab('training')">🧠 Train Mediscan</div>
                 <div style="margin-top: auto; padding-top: 40px;">
                     <a href="index.html" class="admin-nav-item">🏠 Return to App</a>
                 </div>
@@ -184,7 +192,7 @@
 
         <main class="main-content">
             <!-- OVERVIEW SECTION -->
-            <section id="overview" class="section-panel active">
+            <section id="overview" class="section-panel active reveal stagger-1">
                 <header style="margin-bottom: 40px;">
                     <h2 style="font-size: 2.2rem; font-weight: 800;">System Insight</h2>
                     <p style="color: var(--text-muted)">Real-time diagnostic metrics and system performance.</p>
@@ -245,33 +253,50 @@
 
             <!-- KNOWLEDGE SECTION -->
             <section id="knowledge" class="section-panel">
-                <div style="display: grid; grid-template-columns: 1fr 380px; gap: 40px;">
-                    <!-- List -->
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">Knowledge Base</h2>
+                <p style="color: var(--text-muted); margin-bottom: 32px;">Curated medicine profiles in the Mediscan AI
+                    engine.</p>
+                <div class="glass" style="padding: 24px; border-radius: 24px; overflow-x: auto;">
+                    <table id="adminKnowledgeTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Uses</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TRAINING SECTION -->
+            <section id="training" class="section-panel">
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 40px; align-items: start;">
                     <div>
-                        <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">Medical Training</h2>
-                        <p style="color: var(--text-muted); margin-bottom: 32px;">Curated knowledge base of custom
-                            medicine profiles.</p>
-                        <div class="glass" style="padding: 24px; border-radius: 24px; overflow-x: auto;">
-                            <table id="adminKnowledgeTable">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Category</th>
-                                        <th>Uses</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                        <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 12px;">🧠 Train AI Model</h2>
+                        <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 1.1rem; line-height: 1.6;">
+                            Expand Mediscan's medical intelligence by committing new pharmaceutical data to the core
+                            engine.
+                            These entries are immediately indexed and available for global diagnostic analysis.
+                        </p>
+                        <div class="glass" style="padding: 32px; border-radius: 24px;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 16px;">Medical Impact</h3>
+                            <ul style="color: var(--text-muted); padding-left: 20px; line-height: 1.8;">
+                                <li><strong>Immediate Search:</strong> Newly trained drugs appear in search results
+                                    instantly.</li>
+                                <li><strong>Prescription Context:</strong> AI uses this data to cross-check dosages in
+                                    scan analysis.</li>
+                                <li><strong>Global Sync:</strong> Updates are pushed across the entire Mediscan
+                                    infrastructure.</li>
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- Training Form -->
                     <div class="glass"
-                        style="padding: 32px; border-radius: 28px; height: fit-content; sticky; top: 40px;">
-                        <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px;">🧠 Train Engine</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px;">Add new clinical
-                            data to the AI model.</p>
+                        style="padding: 32px; border-radius: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+                        <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 24px;">Training Parameters</h3>
                         <form id="trainForm" autocomplete="off">
                             <div class="form-group">
                                 <label class="form-label">Medicine Name *</label>
@@ -282,20 +307,21 @@
                                 <input id="trainCategory" class="form-input" placeholder="e.g. Corticosteroid">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Indications (comma separated)</label>
+                                <label class="form-label">Clinical Indications</label>
                                 <input id="trainUses" class="form-input" placeholder="e.g. Inflammation, Allergy">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Clinical Dosage</label>
+                                <label class="form-label">Standard Dosage</label>
                                 <input id="trainDosage" class="form-input" placeholder="e.g. 4mg twice daily">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Warnings</label>
-                                <textarea id="trainWarnings" class="form-input" style="height: 80px; resize: none;"
+                                <label class="form-label">Contraindications</label>
+                                <textarea id="trainWarnings" class="form-input" style="height: 100px; resize: none;"
                                     placeholder="e.g. May cause insomnia"></textarea>
                             </div>
                             <button type="submit" id="trainSubmitBtn" class="btn btn-primary"
-                                style="width: 100%; padding: 16px;">🚀 Commit to Knowledge Base</button>
+                                style="width: 100%; padding: 18px; font-weight: 800;">🚀 Commit to Knowledge
+                                Base</button>
                         </form>
                     </div>
                 </div>
@@ -439,9 +465,8 @@
         const params = new URLSearchParams(window.location.search);
         const trainName = params.get('train');
         if (trainName) {
-            showTab('knowledge');
+            showTab('training');
             document.getElementById('trainName').value = trainName;
-            document.getElementById('trainForm').scrollIntoView();
         }
 
         // Init
