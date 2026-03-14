@@ -178,9 +178,30 @@ function initParticles() {
         }
       }
     }
-    requestAnimationFrame(draw);
+
+    if (isCanvasVisible) {
+      animationFrameId = requestAnimationFrame(draw);
+    }
   }
-  draw();
+
+  // Throttle animation when not in viewport
+  let isCanvasVisible = true;
+  let animationFrameId;
+  const heroSection = document.querySelector('.hero');
+  if (heroSection) {
+    const observer = new IntersectionObserver((entries) => {
+      isCanvasVisible = entries[0].isIntersecting;
+      if (isCanvasVisible && !animationFrameId) {
+        draw();
+      } else if (!isCanvasVisible && animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    }, { threshold: 0 });
+    observer.observe(heroSection);
+  } else {
+    draw(); // fallback
+  }
 }
 
 // ── Live Stats ─────────────────────────────────────────────────────────────
@@ -476,41 +497,46 @@ function initUpload() {
 
   btn.addEventListener('click', async () => {
     if (!input._file) { showToast('Please select a medical image first.', 'error'); return; }
+
+    // OPTIMISTIC UI UPDATE: Trigger immediately to reduce perceived latency
     setLoading(btn, true, '⏳ Analyzing…');
     loadBar.style.display = 'block';
     const beam = $('#scanBeam');
     if (beam) beam.style.display = 'block';
     toggleSkeleton('scan', true);
-    try {
-      const form = new FormData();
-      form.append('file', input._file);
-      form.append('scan_type', state.scanType);
-      const res = await fetch('/api/upload', { method: 'POST', body: form });
-      const data = await res.json();
-      if (data.error) {
-        showToast(data.error, 'error');
+
+    setTimeout(async () => {
+      try {
+        const form = new FormData();
+        form.append('file', input._file);
+        form.append('scan_type', state.scanType);
+        const res = await fetch('/api/upload', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.error) {
+          showToast(data.error, 'error');
+          toggleSkeleton('scan', false);
+          return;
+        }
         toggleSkeleton('scan', false);
-        return;
+        if (data.analysis_type === 'prescription') {
+          renderPrescriptionResult(data.data, '#scanContent');
+        } else {
+          renderScanResult(data.data, '#scanContent');
+        }
+        showToast('Analysis complete!', 'success');
+        loadLiveStats();
+        setTimeout(() => {
+          document.getElementById('scanResultsPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      } catch (e) {
+        showToast('Network error — is the server running?', 'error');
+      } finally {
+        setLoading(btn, false);
+        loadBar.style.display = 'none';
+        const beam = $('#scanBeam');
+        if (beam) beam.style.display = 'none';
       }
-      toggleSkeleton('scan', false);
-      if (data.analysis_type === 'prescription') {
-        renderPrescriptionResult(data.data, '#scanContent');
-      } else {
-        renderScanResult(data.data, '#scanContent');
-      }
-      showToast('Analysis complete!', 'success');
-      loadLiveStats();
-      setTimeout(() => {
-        document.getElementById('scanResultsPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 200);
-    } catch (e) {
-      showToast('Network error — is the server running?', 'error');
-    } finally {
-      setLoading(btn, false);
-      loadBar.style.display = 'none';
-      const beam = $('#scanBeam');
-      if (beam) beam.style.display = 'none';
-    }
+    }, 10); // Release main thread briefly to allow UI to render skeleton
   });
 }
 
@@ -1015,26 +1041,47 @@ async function initChat() {
     if (!q) return;
     addMsg(q, false);
     input.value = '';
+
+    // OPTIMISTIC UI: Show typing skeleton instantly
     setLoading(btn, true, '…');
     if (reasoning) reasoning.style.display = 'none';
 
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, context: state.currentResult })
-      });
-      const data = await res.json();
-      if (data.reasoning && data.reasoning.length && reasoning) {
-        reasoning.style.display = 'block';
-        stepsCont.innerHTML = data.reasoning.map(step => `<div style="margin-bottom:4px">◦ ${step}</div>`).join('');
+    const loadId = 'bot-typing-' + Date.now();
+    const typingMsg = el('div', 'bot-msg');
+    typingMsg.id = loadId;
+    typingMsg.style.animation = 'fadeInUp 0.3s ease-out';
+    typingMsg.innerHTML = `<div style="display:flex;gap:10px">
+      <div style="font-size:1.2rem">🤖</div>
+      <div class="msg-content"><span style="opacity:0.6">typing...</span></div>
+    </div>`;
+    msgs.appendChild(typingMsg);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    setTimeout(async () => {
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, context: state.currentResult })
+        });
+        const data = await res.json();
+
+        const typingEl = document.getElementById(loadId);
+        if (typingEl) typingEl.remove();
+
+        if (data.reasoning && data.reasoning.length && reasoning) {
+          reasoning.style.display = 'block';
+          stepsCont.innerHTML = data.reasoning.map(step => `<div style="margin-bottom:4px">◦ ${step}</div>`).join('');
+        }
+        addMsg(data.answer || "I'm sorry, I couldn't process that.");
+      } catch {
+        const typingEl = document.getElementById(loadId);
+        if (typingEl) typingEl.remove();
+        addMsg("Connection error.");
+      } finally {
+        setLoading(btn, false);
       }
-      addMsg(data.answer || "I'm sorry, I couldn't process that.");
-    } catch {
-      addMsg("Connecting to Mediscan AI engine...");
-    } finally {
-      setLoading(btn, false);
-    }
+    }, 10);
   };
 
   btn.addEventListener('click', doChat);

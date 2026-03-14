@@ -125,15 +125,19 @@ body::before {
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  filter: blur(100px);
-  opacity: 0.6;
+  filter: blur(60px);
+  opacity: 0.5;
   pointer-events: none;
+  will-change: transform, filter;
+  transform: translateZ(0);
+  /* Force GPU compositing */
 }
 
 .mesh-blob {
   position: absolute;
   border-radius: 50%;
   animation: mesh-move 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
+  will-change: transform;
 }
 
 .blob-1 {
@@ -558,6 +562,7 @@ nav {
   z-index: 10;
   display: none;
   animation: scan-move 2.5s infinite linear;
+  will-change: top;
 }
 
 @keyframes scan-move {
