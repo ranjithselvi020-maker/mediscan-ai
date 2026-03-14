@@ -493,10 +493,35 @@ function initUpload() {
     zone.querySelector('.drop-sub').textContent = `${(file.size / 1024).toFixed(1)} KB — ready to analyze`;
     btn.dataset.file = 'ready';
     input._file = file;
+
+    // Check HIPAA status if file is selected
+    const hipaaCheck = $('#hipaaCheck');
+    if (hipaaCheck && hipaaCheck.checked) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }
+  }
+
+  // HIPAA Checkbox Logic
+  const hipaaCheck = $('#hipaaCheck');
+  if (hipaaCheck) {
+    hipaaCheck.addEventListener('change', (e) => {
+      if (e.target.checked && input._file) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+      } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+      }
+    });
   }
 
   btn.addEventListener('click', async () => {
     if (!input._file) { showToast('Please select a medical image first.', 'error'); return; }
+    if (hipaaCheck && !hipaaCheck.checked) { showToast('Please confirm PII anonymization first.', 'warning'); return; }
 
     // OPTIMISTIC UI UPDATE: Trigger immediately to reduce perceived latency
     setLoading(btn, true, '⏳ Analyzing…');
@@ -675,12 +700,20 @@ function renderScanResult(data, panelSel, angle) {
       <div style="position:relative">
         <div class="report-box" id="clinicalReport">${data.report}</div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-outline btn-sm" id="copyReportBtn" onclick="copyReport()">📋 Copy Report</button>
+          <button class="btn btn-outline btn-sm" id="copyEMRBtn" onclick="copyToEMR()" style="background:rgba(16,185,129,0.1); border-color:var(--success); color:var(--success)">📋 Copy to EMR</button>
           <button class="btn btn-outline btn-sm" onclick="exportToPDF('Medical Scan Analysis', 'clinicalReport')">📥 Download PDF</button>
           <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print</button>
         </div>
       </div>`;
     panel.appendChild(rb);
+
+    // Attach data to window for EMR copy function
+    window.__currentEMRData = {
+      type: data.scan_type,
+      condition: data.condition,
+      severity: data.severity,
+      report: data.report
+    };
   }
 
   // Recommendations
@@ -1150,6 +1183,27 @@ async function showTrainWith(medName) {
   const encodedName = encodeURIComponent(medName.charAt(0).toUpperCase() + medName.slice(1));
   window.location.href = `admin.html?train=${encodedName}`;
 }
+
+// ── Global Helper: EMR Copy ────────────────────────────────────────────────
+window.copyToEMR = async function () {
+  const d = window.__currentEMRData;
+  if (!d) return;
+  const dateStr = new Date().toISOString().split('T')[0];
+  const emrText = `--- MediScan AI Clinical Summary ---\nDate: ${dateStr}\nModality: ${d.type}\nPrimary Finding: ${d.condition}\nSeverity: ${d.severity}\n\nClinical Report:\n${d.report}\n\n[End of AI Report]`;
+  try {
+    await navigator.clipboard.writeText(emrText);
+    showToast('Copied to Clipboard for EMR', 'success');
+  } catch (e) {
+    showToast('Failed to copy. Try selecting the text manually.', 'error');
+  }
+};
+
+window.copyReport = async function () {
+  const t = document.getElementById('clinicalReport')?.innerText || '';
+  if (!t) return;
+  try { await navigator.clipboard.writeText(t); showToast('Report Copied!', 'success'); }
+  catch (e) { showToast('Copy failed', 'error'); }
+};
 
 // ── Reveal Animations (Scroll) ───────────────────────────────────────────
 function revealCards() {
