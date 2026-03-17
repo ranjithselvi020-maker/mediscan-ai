@@ -51,6 +51,11 @@ INTERACTIONS = [
     ({"warfarin","rifampicin"},     "HIGH",      "Warfarin + Rifampicin: Rifampicin induces CYP enzymes → greatly reduces warfarin efficacy. Major INR adjustments required."),
     ({"haloperidol","amiodarone"},  "HIGH",      "Haloperidol + Amiodarone: Combined QT prolongation risk — risk of Torsades de Pointes/fatal arrhythmia."),
     ({"domperidone","amiodarone"},  "HIGH",      "Domperidone + Amiodarone: QT prolongation risk — avoid combination."),
+    ({"aspirin","clopidogrel"},     "HIGH",      "Aspirin + Clopidogrel: Increased major bleeding risk. Use together only under strict medical supervision."),
+    ({"atorvastatin","gemfibrozil"},"CRITICAL",  "Atorvastatin + Gemfibrozil: Severe risk of rhabdomyolysis and myopathy. Avoid combining these fibrates and statins."),
+    ({"lisinopril","spironolactone"},"MODERATE", "Lisinopril + Spironolactone: Risk of hyperkalaemia (high potassium). Monitor electrolytes regularly."),
+    ({"levofloxacin","prednisolone"},"MODERATE", "Levofloxacin + Corticosteroids: Increased risk of tendon rupture or inflammation. Avoid strenuous activity."),
+    ({"digoxin","furosemide"},      "MODERATE",  "Digoxin + Furosemide: Furosemide-induced hypokalaemia increases risk of digoxin toxicity. Monitor electrolytes."),
 ]
 
 # ── Dosage Timing Codes ───────────────────────────────────────────────────────
@@ -397,7 +402,14 @@ def _fuzzy_match(word, db_keys, threshold=0.78):
         score = (2.0 * matches) / denom if denom > 0 else 0
         # Length penalty: penalise words very different in length
         len_diff = abs(len(word_lower) - len(key))
-        adjusted = score - (len_diff * 0.06)
+        # Prefix matching bonus: medical terms often start similarly (e.g., 'Amox' for Amoxicillin)
+        if key.startswith(word_lower[:4]) and len(word_lower) >= 4:
+            adjusted += 0.15
+        
+        # Word length ratio check
+        ratio = len(shorter) / len(longer)
+        if ratio < 0.5: adjusted -= 0.1
+
         if adjusted > best_score:
             best_score, best_match = adjusted, key
 

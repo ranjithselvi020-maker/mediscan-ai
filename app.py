@@ -101,7 +101,15 @@ def upload():
         return jsonify({"error":"No file provided"}), 400
     f = request.files['file']
     if not f.filename or not allowed_file(f.filename):
-        return jsonify({"error":"Invalid file type. Use PNG/JPG/JPEG/BMP/TIFF."}), 400
+        return jsonify({"error":"Invalid file type. Please upload a standard medical image format (PNG, JPG, BMP, TIFF)."}), 400
+    
+    # Explicit size check (redundant but safe)
+    f.seek(0, os.SEEK_END)
+    size = f.tell()
+    f.seek(0)
+    if size > app.config['MAX_CONTENT_LENGTH']:
+        return jsonify({"error":"File size exceeds 20MB limit."}), 413
+        
     filename = secure_filename(f.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     f.save(filepath)
@@ -337,17 +345,21 @@ def chat():
     combined = {**MEDICINE_DB, **custom}
     for name, info in combined.items():
         if name in q or any(u.lower() in q for u in info.get('uses',[])):
-            warnings_str = '; '.join(info.get('warnings',[])) or 'None listed'
-            alts_str     = ', '.join(info.get('alternatives',[])) or 'None listed'
+            side_effects_str = ', '.join(info.get('side_effects', [])) or 'None listed'
+            safety_risk      = info.get('safety_risk', 3)
+            risk_icon        = '🟢' if safety_risk <= 2 else ('🟡' if safety_risk <= 4 else '🔴')
+            
             return jsonify({
                 "answer": (
-                    f"**{name.replace('_',' ').title()}** — *{info['category']}*\n\n"
+                    f"### {name.replace('_',' ').title()} — *{info['category']}*\n\n"
                     f"**Uses:** {', '.join(info['uses'])}\n\n"
                     f"**Dosage:** {info['dosage']}\n\n"
+                    f"**Side Effects:** {side_effects_str}\n\n"
                     f"**Alternatives:** {alts_str}\n\n"
+                    f"**Risk Level:** {risk_icon} ({safety_risk}/5)\n\n"
                     f"**⚠ Warnings:** {warnings_str}"
                 ),
-                "reasoning": ["Matched medicine in knowledge base."]
+                "reasoning": ["Direct knowledge base match found.", f"Retrieved structured metadata for {name}."]
             })
     return jsonify(resp)
 

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Report — MediScan AI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        }
+
+        body {
+            background: #020617;
+            color: #f8fafc;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .report-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 80px 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #00f2fe;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lead {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        section {
+            margin-bottom: 100px;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 48px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 242, 254, 0.3);
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        h2 span {
+            color: #00f2fe;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-item {
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-item h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .feature-item p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .tech-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin: 4px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-label {
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            color: #00f2fe;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(0, 242, 254, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(79, 172, 254, 0.15) 0%, transparent 50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="mesh-gradient"></div>
+
+    <div class="report-container">
+        <header>
+            <div class="badge">Project Report 2026</div>
+            <h1>MediScan AI</h1>
+            <p class="lead">Refining Clinical Decision Support with Intelligent Vision and Pharmaceutical Context</p>
+        </header>
+
+        <section id="executive-summary">
+            <div class="glass-card">
+                <h2><span>01</span> Executive Summary</h2>
+                <p>
+                    MediScan AI is a sophisticated clinical decision support tool designed to bridge the gap between complex medical imaging and actionable clinical insights. By leveraging advanced computer vision and localized natural language processing, the system provides instant, secondary diagnostic opinions that prioritize patient safety and clinical accuracy.
+                </p>
+            </div>
+        </section>
+
+        <section id="problem-statement">
+            <div class="glass-card">
+                <h2><span>02</span> Problem Statement</h2>
+                <div class="grid">
+                    <div class="feature-item">
+                        <h3>Diagnostic Latency</h3>
+                        <p>Traditional diagnostic workflows often involve significant delays in report generation, which can be critical in emergency scenarios like strokes or fractures.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Accessibility Gap</h3>
+                        <p>Complex medical reports are often inaccessible to patients due to technical jargon and language barriers, particularly in non-English speaking regions.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Prescription Errors</h3>
+                        <p>Handwritten prescriptions contribute to significant medication errors. There is a lack of automated tools to cross-check dosages and drug interactions at the point of care.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tech-architecture">
+            <div class="glass-card">
+                <h2><span>03</span> Technical Architecture</h2>
+                <p style="margin-bottom: 24px;">Built on a modern, modular stack designed for high throughput and low-latency interaction.</p>
+                
+                <div class="tech-stack" style="margin-bottom: 32px;">
+                    <span class="tech-pill">Python 3.11</span>
+                    <span class="tech-pill">Flask</span>
+                    <span class="tech-pill">SQLAlchemy</span>
+                    <span class="tech-pill">OpenCV</span>
+                    <span class="tech-pill">Tesseract OCR</span>
+                    <span class="tech-pill">Vanilla JS (ES6+)</span>
+                    <span class="tech-pill">CSS3 Glassmorphism</span>
+                    <span class="tech-pill">SQLite</span>
+                </div>
+
+                <div class="grid">
+                    <div class="feature-item">
+                        <h3>Multi-Phase AI Engine</h3>
+                        <p>Heuristic-based diagnostic engine for 6 major scan modalities, providing instant ROI detection and detailed clinical findings.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Advanced OCR Pipeline</h3>
+                        <p>A resilient 3-phase OCR system with deskewing, noise reduction, and consensus voting to handle messy handwritten prescriptions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tech-justification">
+            <div class="glass-card">
+                <h2><span>04</span> Deep Technical Justification</h2>
+                
+                <div class="grid">
+                    <div class="feature-item">
+                        <h3 style="color: #fbbf24;">Resilient OCR Architecture</h3>
+                        <p>
+                            Unlike standard OCR, our pipeline is designed for <strong>High-Noise Medical Environments</strong>:
+                            <ul style="margin-top: 8px; font-size: 0.85rem; padding-left: 14px;">
+                                <li><strong>Sauvola Local Thresholding:</strong> Handles uneven lighting and shadows on physical paper.</li>
+                                <li><strong>NLM Denoising:</strong> Non-local means filtering preserves delicate handwritten strokes while removing camera sensor noise.</li>
+                                <li><strong>Consensus Voting:</strong> Aggregates results from multiple Tesseract PSMs (3, 6, 11) using a token-overlap scoring algorithm.</li>
+                            </ul>
+                        </p>
+                    </div>
+                    <div class="feature-item">
+                        <h3 style="color: #fbbf24;">Explainable AI (XAI)</h3>
+                        <p>
+                            We avoid the "Black Box" problem in clinical settings:
+                            <ul style="margin-top: 8px; font-size: 0.85rem; padding-left: 14px;">
+                                <li><strong>Feature Heuristics:</strong> Modality detection uses edge density and aspect ratio, ensuring transparency in detection logic.</li>
+                                <li><strong>Differential Diagnosis:</strong> Always provides secondary possibilities, mimicking the professional diagnostic workflow.</li>
+                                <li><strong>ROI Projection:</strong> Heatmaps are projected based on clinical findings, not random probability clusters.</li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid" style="margin-top: 24px;">
+                    <div class="feature-item">
+                        <h3 style="color: #fbbf24;">Privacy by Design</h3>
+                        <p>
+                            Compliant with <strong>HIPAA & GDPR</strong> principles:
+                            <ul style="margin-top: 8px; font-size: 0.85rem; padding-left: 14px;">
+                                <li><strong>Local Compute:</strong> All PII (Patient Identifiable Information) remains on the local server.</li>
+                                <li><strong>Zero-Cloud Dependency:</strong> Diagnostic logic is self-contained, preventing external data leaks.</li>
+                                <li><strong>SQLite Encapsulation:</strong> History and Knowledge base are stored in a portable, flat-file database format.</li>
+                            </ul>
+                        </p>
+                    </div>
+                    <div class="feature-item">
+                        <h3 style="color: #fbbf24;">Clinical Safety Logic</h3>
+                        <p>
+                            Prioritizing Patient Outcomes:
+                            <ul style="margin-top: 8px; font-size: 0.85rem; padding-left: 14px;">
+                                <li><strong>Latin Parsing:</strong> Automatically translates "OD/BD/HS" into patient-friendly timing schedules.</li>
+                                <li><strong>Interaction Cross-Check:</strong> Real-time lookup against a 50+ list of high-risk drug combinations (e.g., Warfarin + Aspirin).</li>
+                                <li><strong>Pregnancy Categorization:</strong> FDA safety metadata integration for all searched medicines.</li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="justification">
+            <div class="glass-card">
+                <h2><span>05</span> Architectural Choices</h2>
+                <div class="metric-row">
+                    <span class="metric-label">Frontend Philosophy</span>
+                    <span class="metric-value">Performance-First Vanilla JS</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Backend Choice</span>
+                    <span class="metric-value">Python (Clinical Standard)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Data Privacy</span>
+                    <span class="metric-value">Local Processing (PII Safe)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Accessibility</span>
+                    <span class="metric-value">Bi-lingual (En/Ta) + Tanglish</span>
+                </div>
+                <p style="margin-top: 24px; font-size: 0.9rem; color: #94a3b8;">
+                    The choice of Vanilla JS over heavy frameworks ensures the application remains snappy on low-power hospital terminals. The Python backend allows for seamless integration with medical imaging libraries while maintaining a clean, RESTful API.
+                </p>
+            </div>
+        </section>
+
+        <section id="impact">
+            <div class="glass-card" style="background: linear-gradient(135deg, rgba(0, 242, 254, 0.05) 0%, rgba(79, 172, 254, 0.05) 100%);">
+                <h2><span>06</span> Future Roadmap</h2>
+                <ul style="color: #cbd5e1; padding-left: 20px;">
+                    <li style="margin-bottom: 12px;">Integration with DICOM viewers for native hospital PACS support.</li>
+                    <li style="margin-bottom: 12px;">Fine-tuning of LLM wrappers for more nuanced clinical reasoning.</li>
+                    <li style="margin-bottom: 12px;">Real-time video analysis for surgical assistance.</li>
+                    <li style="margin-bottom: 12px;">Expansion of the medicine database to 10,000+ entries.</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 MediScan AI Project. For Clinical Decision Support Only.</p>
+            <div style="margin-top: 20px;">
+                <a href="index.html" style="color: #00f2fe; text-decoration: none; font-weight: 600;">Return to Dashboard</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

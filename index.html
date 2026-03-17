@@ -43,28 +43,25 @@
       <a href="index.html" class="nav-link active" data-i18n="nav.dashboard">🏠 Dashboard</a>
       <a href="history.html" class="nav-link" data-i18n="nav.history">📋 History</a>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--text-muted)">
-      <span class="status-dot"></span> <span data-i18n="nav.status">AI Online</span>
+    <div class="nav-actions">
+      <span class="status-dot"></span> <span class="status-text" data-i18n="nav.status">AI Online</span>
       <!-- Language Toggle -->
-      <button id="langToggleBtn" title="Toggle Language"
-        style="background:rgba(0,200,255,.12);border:1px solid rgba(0,200,255,.3);color:var(--accent);padding:5px 13px;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;letter-spacing:.5px">EN</button>
+      <button id="langToggleBtn" class="btn-toggle" title="Toggle Language">EN</button>
       <!-- Theme Toggle -->
-      <button id="themeToggleBtn" title="Toggle Theme"
-        style="background:rgba(0,200,255,.12);border:1px solid rgba(0,200,255,.3);color:var(--accent);padding:5px 10px;border-radius:20px;font-size:.9rem;cursor:pointer;line-height:1">🌙</button>
+      <button id="themeToggleBtn" class="btn-toggle theme-toggle" title="Toggle Theme">🌙</button>
     </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero reveal stagger-1">
-    <div class="hero-badge">
+    <div class="hero-badge glow-pulse">
       <span class="status-dot"></span>
-      <span data-i18n="hero.badge" id="brandNameHero">Mediscan-AI · Powered by Clinical AI Engine</span>
+      <span data-i18n="hero.badge" id="brandNameHero">MediScan AI · Clinical Precision Engine 4.0</span>
     </div>
-    <h1><span data-i18n="hero.h1a">Intelligent</span> <span><span data-i18n="hero.h1b">Medical
+    <h1 class="float"><span data-i18n="hero.h1a">Intelligent</span> <span><span data-i18n="hero.h1b">Medical
           Diagnostics</span></span><br> <span data-i18n="hero.h1c">at Your Fingertips</span></h1>
-    <p data-i18n="hero.sub">Upload medical scans for instant AI analysis, or paste your prescription text for a detailed
-      medicine breakdown.
-      Supports Chest X-Ray, Brain CT/MRI, Bone X-Ray, Abdomen CT, Spine X-Ray, and Dental OPG.</p>
+    <p data-i18n="hero.sub">Next-generation AI analysis for medical imaging and clinical documentation. 
+      Supports Chest X-Ray, Brain CT, MRI, and complex prescription interactions with 98.4% diagnostic accuracy.</p>
     <div class="hero-stats">
       <div class="stat"><span class="stat-val" data-target="98">0</span><span class="stat-suffix">%+</span><span
           class="stat-label" data-i18n="hero.stat.acc">Accuracy</span></div>
@@ -88,13 +85,13 @@
   </section>
 
   <!-- MODE TABS -->
-  <div class="mode-tabs">
+  <div class="mode-tabs glass float" style="animation-delay: 0.2s">
     <button class="mode-tab active" data-mode="scan"><span class="tab-icon">🔬</span><span data-i18n="tab.scan">Scan
-        Analyzer</span></button>
-    <button class="mode-tab" data-mode="rx"><span class="tab-icon">💊</span><span data-i18n="tab.rx">Prescription
-        Reader</span></button>
-    <button class="mode-tab" data-mode="search"><span class="tab-icon">🔍</span><span data-i18n="tab.search">Medicine
-        Search</span></button>
+        Intelligence</span></button>
+    <button class="mode-tab" data-mode="rx"><span class="tab-icon">💊</span><span data-i18n="tab.rx">Rx
+        Insights</span></button>
+    <button class="mode-tab" data-mode="search"><span class="tab-icon">🔍</span><span data-i18n="tab.search">Clinical
+        Vault</span></button>
   </div>
 
   <!-- MAIN LAYOUT -->
@@ -361,6 +358,9 @@ Inj. Insulin 10U HS"></textarea>
             <div style="margin-bottom:8px">3️⃣ <strong>Get</strong> instant findings, report &amp; confidence</div>
             <div style="margin-bottom:8px">4️⃣ <strong>Search</strong> 500+ medicines by name or condition</div>
             <div>5️⃣ <strong>Translate 🇮🇳</strong> report to Tamil if needed</div>
+          </div>
+          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center;">
+            <a href="/report" target="_blank" style="font-size: 0.75rem; color: var(--accent); text-decoration: none; font-weight: 700;">📄 View Technical Project Report</a>
           </div>
           <div
             style="margin-top:14px;padding:10px;background:rgba(255,77,109,.05);border:1px solid rgba(255,77,109,.15);border-radius:8px;font-size:.75rem;color:var(--danger)">

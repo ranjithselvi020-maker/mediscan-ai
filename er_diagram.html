@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ER Diagram — MediScan AI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #020617;
+            color: #f8fafc;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .diagram-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 60px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .entity {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            width: 240px;
+            position: absolute;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .entity:hover {
+            transform: scale(1.02);
+            border-color: #00f2fe;
+        }
+
+        .entity-name {
+            font-weight: 800;
+            color: #00f2fe;
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(0, 242, 254, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .attribute {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .attribute .type {
+            color: #64748b;
+            font-family: monospace;
+        }
+
+        .pk {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+
+        /* Positions */
+        #scan-entity { top: 60px; left: 60px; }
+        #medicine-entity { top: 60px; right: 60px; }
+        #internal-db-entity { bottom: 60px; left: 50%; transform: translateX(-50%); }
+
+        svg.connector {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        line {
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 2;
+            stroke-dasharray: 8;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: 200; }
+        }
+
+        .legend {
+            margin-top: 40px;
+            display: flex;
+            gap: 24px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        .back-link {
+            margin-top: 40px;
+            color: #00f2fe;
+            text-decoration: none;
+            font-weight: 600;
+            transition: opacity 0.3s;
+        }
+
+        .back-link:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Entity Relationship Diagram</h1>
+        <p>Data Schema & Architectural Relationships of MediScan AI</p>
+    </div>
+
+    <div class="diagram-container" style="height: 500px;">
+        <svg class="connector">
+            <!-- Connectors -->
+            <line x1="300" y1="180" x2="700" y2="180" />
+            <line x1="180" y1="340" x2="500" y2="440" />
+            <line x1="820" y1="340" x2="500" y2="440" />
+        </svg>
+
+        <!-- SCAN ENTITY -->
+        <div class="entity" id="scan-entity">
+            <div class="entity-name">📋 Scan</div>
+            <div class="attribute pk">id <span class="type">INT</span></div>
+            <div class="attribute">filename <span class="type">STR</span></div>
+            <div class="attribute">scan_type <span class="type">STR</span></div>
+            <div class="attribute">timestamp <span class="type">DATETIME</span></div>
+            <div class="attribute">result <span class="type">JSON</span></div>
+            <div class="attribute">confidence <span class="type">FLOAT</span></div>
+        </div>
+
+        <!-- MEDICINE ENTITY -->
+        <div class="entity" id="medicine-entity">
+            <div class="entity-name">💊 CustomMed</div>
+            <div class="attribute pk">id <span class="type">INT</span></div>
+            <div class="attribute">name <span class="type">STR</span></div>
+            <div class="attribute">category <span class="type">STR</span></div>
+            <div class="attribute">uses <span class="type">JSON</span></div>
+            <div class="attribute">dosage <span class="type">STR</span></div>
+            <div class="attribute">warnings <span class="type">JSON</span></div>
+        </div>
+
+        <!-- INTERNAL KNOWLEDGE -->
+        <div class="entity" id="internal-db-entity">
+            <div class="entity-name">🧠 KnowledgeBase</div>
+            <div class="attribute">MEDICINE_DB <span class="type">DICT</span></div>
+            <div class="attribute">INTERACTIONS <span class="type">LIST</span></div>
+            <div class="attribute">TAMIL_MAP <span class="type">DICT</span></div>
+            <div class="attribute">SAFETY_META <span class="type">DICT</span></div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><span class="dot" style="background: #fbbf24;"></span> Primary Key</div>
+        <div class="legend-item"><span class="dot" style="background: #00f2fe;"></span> Entity</div>
+        <div class="legend-item"><span class="dot" style="background: rgba(255,255,255,0.2);"></span> Virtual Relationship</div>
+    </div>
+
+    <a href="index.html" class="back-link">← Return to Dashboard</a>
+</body>
+</html>

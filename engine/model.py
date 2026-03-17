@@ -108,6 +108,21 @@ SCAN_PROFILES = {
                 "severity": "High",
                 "confidence_range": (89, 96),
                 "recommendations": ["Sputum AFB smear and culture", "CBNAAT/GeneXpert test", "Start anti-TB therapy (RNTCP-DOTS)", "Isolation protocol", "Contact tracing mandatory"]
+            },
+            {
+                "name": "Lung Mass",
+                "probability": 0.05,
+                "findings": [
+                    "Solitary pulmonary nodule (2.4 cm) in right upper lobe",
+                    "Spiculated margins suggestive of malignancy",
+                    "Atelectasis of the distal lung segment",
+                    "Enlarged right hilar lymph nodes",
+                    "No pleural effusion identified"
+                ],
+                "report": "There is a 2.4 cm spiculated pulmonary nodule in the right upper lobe, concerning for primary bronchogenic carcinoma. Associated hilar lymphadenopathy is present. Impression: Lung mass — urgent oncology referral and biopsy recommended.",
+                "severity": "Critical",
+                "confidence_range": (87, 94),
+                "recommendations": ["Urgent Thoracic Surgery/Oncology referral", "CT-guided biopsy", "PET-CT for staging", "Contrast-enhanced CT Chest/Abdomen", "Pulmonary function tests"]
             }
         ]
     },
@@ -189,6 +204,21 @@ SCAN_PROFILES = {
                 "severity": "High",
                 "confidence_range": (88, 96),
                 "recommendations": ["Lumbar puncture for CSF analysis", "Blood cultures before antibiotics", "IV antibiotics empirically (Ceftrioxone)", "Dexamethasone to reduce inflammation", "ICU monitoring"]
+            },
+            {
+                "name": "Multiple Sclerosis",
+                "probability": 0.05,
+                "findings": [
+                    "Multiple hyperintense periventricular white matter lesions",
+                    "Ovoid lesions perpendicular to ventricles (Dawson's fingers)",
+                    "Involvement of the corpus callosum and juxtacortical regions",
+                    "No acute mass effect or midline shift",
+                    "Cerebral atrophy noted for age"
+                ],
+                "report": "Multiple periventricular and juxtacortical white matter hyperintensities are identified, consistent with demyelinating disease. Some lesions are perpendicular to the ventricles (Dawson's fingers). Impression: Findings strongly suggestive of Multiple Sclerosis.",
+                "severity": "High",
+                "confidence_range": (85, 93),
+                "recommendations": ["Neurologist evaluation", "MRI Spine with/without contrast", "Lumbar puncture for oligoclonal bands", "Evoked potentials (VEP)", "Disease-modifying therapy (DMT) consultation"]
             }
         ]
     },
@@ -321,6 +351,21 @@ SCAN_PROFILES = {
                 "severity": "Moderate",
                 "confidence_range": (90, 97),
                 "recommendations": ["Hepatology referral", "Lifestyle modification: low-fat diet, exercise", "Avoid alcohol completely", "LFT, lipid panel, HbA1c", "Weight reduction (5-10% body weight)", "Ursodeoxycholic acid consideration"]
+            },
+            {
+                "name": "Diverticulitis",
+                "probability": 0.10,
+                "findings": [
+                    "Wall thickening of the sigmoid colon with diverticula",
+                    "Pericolic fat stranding and mesenteric hyperaemia",
+                    "No evidence of abscess or free air",
+                    "Associated mild small bowel dilatation",
+                    "Normal liver and spleen"
+                ],
+                "report": "Segmental wall thickening of the sigmoid colon is noted with associated diverticula and pericolic fat stranding. No abscess or perforation seen. Impression: Acute uncomplicated diverticulitis.",
+                "severity": "High",
+                "confidence_range": (90, 96),
+                "recommendations": ["Liquid diet then high-fiber as tolerated", "Antibiotics (Ciprofloxacin + Metronidazole)", "Surgical review if symptoms persist", "Colonoscopy in 6-8 weeks to rule out malignancy"]
             }
         ]
     },
@@ -470,16 +515,29 @@ class AIDiagnosticEngine:
             img = cv2.imread(filepath)
             if img is None:
                 return features
+            
+            # --- LATENCY OPTIMIZATION ---
+            # Modern smartphone images (12MP+) cause cv2 to block for seconds.
+            # We resize to a max dimension of 512px for lightning-fast feature extraction.
             h, w = img.shape[:2]
+            max_dim = 512
+            if max(h, w) > max_dim:
+                scale = max_dim / max(h, w)
+                new_w, new_h = int(w * scale), int(h * scale)
+                img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                
+            # Process on the optimized (smaller) image
+            opt_h, opt_w = img.shape[:2]
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            
             features["brightness"] = float(np.mean(gray))
             features["std_dev"] = float(np.std(gray))
             edges = cv2.Canny(gray, 50, 150)
-            features["edge_density"] = float(np.sum(edges > 0)) / (h * w)
-            features["aspect_ratio"] = w / h if h > 0 else 1.0
+            features["edge_density"] = float(np.sum(edges > 0)) / (opt_h * opt_w)
+            features["aspect_ratio"] = w / h if h > 0 else 1.0 # Keep original aspect ratio
             features["blur_score"] = float(cv2.Laplacian(gray, cv2.CV_64F).var())
-            features["width"] = w
-            features["height"] = h
+            features["width"] = w   # Keep original width
+            features["height"] = h  # Keep original height
         except Exception:
             pass
         
@@ -631,10 +689,12 @@ class AIDiagnosticEngine:
         """Contextual reasoning for the AI chat assistant."""
         query_lower = query.lower()
 
+        # Simulated multi-step clinical reasoning
         reasoning_steps = [
-            "🔍 Parsing query intent...",
-            "🧠 Cross-referencing clinical knowledge base...",
-            "📋 Generating evidence-based response...",
+            "1. **Query Analysis**: Parsing patient intent and medical keywords...",
+            "2. **Evidence Retrieval**: Querying internal diagnostic knowledge base...",
+            "3. **Contextualization**: Cross-referencing findings with available scan history...",
+            "4. **Synthesis**: Formatting structured response with clinical safety disclaimers..."
         ]
 
         # Context-aware (scan result)
@@ -672,6 +732,13 @@ class AIDiagnosticEngine:
             "pneumothorax": "**Pneumothorax** is a collapsed lung where air leaks into the space between the lung and chest wall, putting pressure on the lung. Can be spontaneous, traumatic, or iatrogenic.",
             "effusion": "**Pleural Effusion** is an unusual amount of fluid around the lung. Causes include heart failure, pneumonia, cancer, and liver disease.",
             "cardiomegaly": "**Cardiomegaly** means the heart is enlarged. This is not a disease itself but a sign of another condition such as heart failure, cardiomyopathy, or hypertension.",
+            "stroke": "**Ischemic Stroke** occurs when a vessel supplying blood to the brain is obstructed. It is a medical emergency that can result in permanent brain damage. Symptoms: facial drooping, arm weakness, speech difficulty (FAST).",
+            "hemorrhage": "**Intracranial Hemorrhage** is bleeding inside the skull. It can cause a sudden severe headache, vomiting, and neurological deficits. Most common cause is high blood pressure or trauma.",
+            "fracture": "**Fracture** is a break in the bone's continuity. It can be transverse, oblique, spiral, or comminuted. Requires stabilization to heal correctly.",
+            "scoliosis": "**Scoliosis** is a lateral curvature of the spine. Most common in adolescents. Can be idiopathic, congenital, or neuromuscular.",
+            "appendicitis": "**Appendicitis** is an inflammation of the appendix. Symptoms: sharp pain in the lower right abdomen, nausea, and fever. Requires urgent surgical evaluation.",
+            "mri": "**Magnetic Resonance Imaging (MRI)** uses strong magnetic fields and radio waves to produce detailed images of organs and tissues. Excellent for soft tissue and neurological scans.",
+            "ct": "**Computed Tomography (CT)** uses a series of X-rays to create cross-sectional images of the body. Faster than MRI and excellent for bone and acute hemorrhage.",
             "ischemic": "**Ischemic Stroke** occurs when blood supply to part of the brain is cut off, usually by a clot. It's a medical emergency — 'time is brain'.",
             "hemorrhage": "**Hemorrhage** means bleeding. Intracranial hemorrhage is bleeding inside the skull, which can be life-threatening.",
             "epilepsy": "**Epilepsy** is a neurological disorder characterized by recurrent, unprovoked seizures due to abnormal brain electrical activity.",

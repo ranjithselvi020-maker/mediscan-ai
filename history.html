@@ -7,150 +7,140 @@
     <title>Scan History — MediScan AI</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        :root {
-            --bg-dark: #040d1a;
-            --bg-card: rgba(255, 255, 255, 0.04);
-            --accent: #00c8ff;
-            --accent2: #0072ff;
-            --accent3: #00ffa3;
-            --text: #e2e8f0;
-            --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.08);
-            --radius: 20px;
-            --shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-
         body {
-            background: radial-gradient(circle at 50% 0%, #0a192f 0%, var(--bg-dark) 100%);
-            min-height: 100vh;
+            background: var(--bg-deep);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
         }
 
         .history-page {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 24px 80px;
-        }
-
-        .glass {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            border-radius: var(--radius);
+            padding: 60px 40px 100px;
         }
 
         .history-head {
+            margin-bottom: 60px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 40px;
             flex-wrap: wrap;
-            gap: 24px;
+            gap: 40px;
         }
 
         .filter-tabs {
             display: flex;
             gap: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 6px;
+            background: var(--bg-card);
+            padding: 8px;
             border-radius: 50px;
             border: 1px solid var(--border);
             width: fit-content;
-            margin-bottom: 32px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
         }
 
         .filter-tab {
-            padding: 10px 24px;
+            padding: 12px 28px;
             border-radius: 50px;
-            border: none;
+            border: 1px solid transparent;
             background: transparent;
             color: var(--text-muted);
-            font-size: .88rem;
+            font-size: .9rem;
             font-weight: 600;
+            font-family: 'Outfit', sans-serif;
             cursor: pointer;
-            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s var(--spring);
+        }
+
+        .filter-tab:hover {
+            color: var(--text);
         }
 
         .filter-tab.active {
-            background: var(--accent);
-            color: #fff;
-            box-shadow: 0 8px 20px rgba(0, 200, 255, 0.3);
+            background: linear-gradient(135deg, var(--accent), var(--accent-vibrant));
+            color: #020617;
+            box-shadow: 0 8px 20px -4px rgba(34, 211, 238, 0.4);
         }
 
         .hist-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 32px;
         }
 
         .hist-card {
             position: relative;
-            padding: 24px;
+            padding: 32px;
+            background: var(--bg-card);
+            backdrop-filter: blur(60px) saturate(200%);
+            -webkit-backdrop-filter: blur(60px) saturate(200%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.5s var(--spring);
             overflow: hidden;
-            transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
-        }
-
-        .hist-card:hover {
-            transform: translateY(-6px);
-            border-color: var(--accent);
-            box-shadow: 0 15px 35px rgba(0, 200, 255, 0.15);
         }
 
         .hist-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--accent), var(--accent3));
-            opacity: 0.6;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .hist-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--accent-glow);
+            box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6);
         }
 
         .hist-card-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
         }
 
         .hist-badge {
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 50px;
-            font-size: .7rem;
+            font-size: .75rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             font-weight: 800;
+            font-family: 'Outfit', sans-serif;
         }
 
         .badge-scan {
-            background: rgba(0, 200, 255, 0.12);
+            background: rgba(34, 211, 238, 0.1);
             color: var(--accent);
-            border: 1px solid rgba(0, 200, 255, 0.3);
+            border: 1px solid var(--border-glow);
         }
 
         .badge-rx {
-            background: rgba(0, 255, 163, 0.12);
-            color: var(--accent3);
-            border: 1px solid rgba(0, 255, 163, 0.3);
+            background: rgba(168, 85, 247, 0.1);
+            color: var(--accent-soft);
+            border: 1px solid rgba(168, 85, 247, 0.2);
         }
 
         .hist-conf {
-            font-size: 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
             font-weight: 800;
-            font-family: 'Outfit', sans-serif;
-            letter-spacing: -0.5px;
+            letter-spacing: -1px;
         }
 
         .hist-findings {
-            font-size: .85rem;
-            color: var(--text);
-            line-height: 1.6;
-            margin-bottom: 20px;
-            padding: 12px;
+            font-size: .9rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            padding: 16px;
             background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
+            border-radius: var(--radius-sm);
             border: 1px solid var(--border);
         }
 
@@ -158,81 +148,84 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: .75rem;
+            font-size: .8rem;
             color: var(--text-muted);
             border-top: 1px solid var(--border);
-            padding-top: 16px;
-        }
-
-        .hist-dt {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            padding-top: 20px;
         }
 
         .hist-del-btn {
-            background: rgba(255, 77, 109, 0.08);
-            border: 1px solid rgba(255, 77, 109, 0.2);
-            color: #ff4d6d;
-            padding: 6px 14px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            padding: 8px 18px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: .75rem;
-            font-weight: 600;
-            transition: all .2s;
+            font-size: .8rem;
+            font-weight: 700;
+            transition: all 0.3s;
         }
 
         .hist-del-btn:hover {
-            background: #ff4d6d;
+            background: var(--danger);
             color: #fff;
             border-color: transparent;
+            transform: scale(1.05);
         }
 
         .stat-pill {
             background: var(--bg-card);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 20px;
+            border-radius: var(--radius-sm);
+            padding: 24px;
             flex: 1;
-            min-width: 180px;
+            min-width: 200px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
+            transition: all 0.4s var(--gentle);
+        }
+
+        .stat-pill:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-glow);
         }
 
         .stat-pill-val {
-            font-size: 1.8rem;
-            font-weight: 900;
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
         }
 
         .stat-pill-label {
-            font-size: .75rem;
+            font-size: .8rem;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            font-weight: 600;
         }
 
         .search-container {
             position: relative;
-            width: 300px;
+            width: 350px;
         }
 
         .search-input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--bg-input);
             border: 1px solid var(--border);
             color: #fff;
             border-radius: 50px;
-            padding: 12px 20px;
-            font-size: .9rem;
-            transition: all .3s;
+            padding: 16px 28px;
+            font-size: .95rem;
+            transition: all 0.4s;
         }
 
         .search-input:focus {
-            background: rgba(255, 255, 255, 0.05);
             border-color: var(--accent);
-            box-shadow: 0 0 15px rgba(0, 200, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 4px var(--accent-glow);
             outline: none;
         }
 
@@ -240,6 +233,7 @@
             .history-head {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 20px;
             }
 
             .search-container {
@@ -274,7 +268,7 @@
         <div class="history-head">
             <div>
                 <h1
-                    style="font-size:2.8rem;font-weight:900;background:linear-gradient(135deg, #fff, #94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;font-family:'Outfit', sans-serif">
+                    style="font-size:2.8rem;font-weight:900;background:linear-gradient(135deg, #fff, #94a3b8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;font-family:'Outfit', sans-serif">
                     Scan History
                 </h1>
                 <p style="color:var(--text-muted);font-size:1rem;font-weight:500">
