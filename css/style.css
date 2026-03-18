@@ -829,28 +829,18 @@ nav {
   margin-bottom: 1em;
 }
 
-/* ── Reveal Animations ── */
+/* ── Reveal Animations (CSS-only, no JS dependency) ── */
 .reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.reveal.active {
-  opacity: 1;
-  transform: translateY(0);
+  /* Content always visible — animation is purely cosmetic */
+  animation: fadeUpIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .stagger-1 {
-  transition-delay: 0.1s;
+  animation-delay: 0.1s;
 }
 
 .stagger-2 {
-  transition-delay: 0.2s;
-}
-
-.stagger-3 {
-  transition-delay: 0.3s;
+  animation-delay: 0.2s;
 }
 
 /* ── Results Panel ── */
@@ -1810,13 +1800,10 @@ nav {
   animation: gradShift 6s ease infinite;
 }
 
-/* ── Hero paragraph (typed by JS, CSS just hides initially) ─────── */
+/* ── Hero paragraph — visible by default, JS typing is cosmetic ── */
 .hero p {
-  opacity: 0;
-  animation: none;
+  animation: fadeUpIn 0.6s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-
-/* JS takes over */
 
 /* ── Hero stat values ─────────────────────────────────────────── */
 @keyframes statGlow {

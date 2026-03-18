@@ -295,38 +295,12 @@
     }
 
     /* ──────────────────────────────────────────────────────────────────────
-       9.  SCROLL REVEAL — elements animate in as they enter viewport
+       9.  SCROLL REVEAL — DISABLED (CSS handles entrance animations now)
+           Previously set opacity:0 on all .glass elements via JS, causing
+           blank page if any error occurred. Removed for reliability.
     ────────────────────────────────────────────────────────────────────── */
     function initScrollReveal() {
-        const targets = qq(`
-      .glass, .mode-tab, .scan-opt, .stat,
-      .finding-item, .medicine-card, .reco-item,
-      .stat-pill, .hist-card, .filter-tab
-    `);
-
-        targets.forEach((el, i) => {
-            if (!el.dataset.revealed) {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                el.style.transition = `opacity 0.5s ease, transform 0.5s ease`;
-            }
-        });
-
-        const obs = new IntersectionObserver(entries => {
-            entries.forEach(e => {
-                if (e.isIntersecting && !e.target.dataset.revealed) {
-                    const idx = targets.indexOf(e.target);
-                    setTimeout(() => {
-                        e.target.style.opacity = '1';
-                        e.target.style.transform = 'translateY(0)';
-                        e.target.dataset.revealed = '1';
-                    }, (idx % 6) * 60);
-                    obs.unobserve(e.target);
-                }
-            });
-        }, { threshold: 0.08 });
-
-        targets.forEach(el => obs.observe(el));
+        // No-op: CSS animations handle all entrance effects safely
     }
 
     /* ──────────────────────────────────────────────────────────────────────
@@ -394,29 +368,13 @@
     }
 
     /* ──────────────────────────────────────────────────────────────────────
-       13.  CINEMATIC PAGE ENTRANCE (staggered reveal on first load)
+       13.  CINEMATIC PAGE ENTRANCE — DISABLED (CSS handles this now)
+            Previously set opacity:0 via JS overrides, causing blank page.
+            CSS animations on nav, .hero, .mode-tabs, .main-layout handle
+            all entrance effects reliably without JS dependency.
     ────────────────────────────────────────────────────────────────────── */
     function initCinematicEntrance() {
-        const seq = [
-            { sel: 'nav', delay: 0, dur: 600, from: { opacity: 0, transform: 'translateY(-40px)' } },
-            { sel: '.hero-badge', delay: 200, dur: 500, from: { opacity: 0, transform: 'scale(0.6)' } },
-            { sel: '.hero h1', delay: 350, dur: 700, from: { opacity: 0, transform: 'translateY(30px)' } },
-            { sel: '.hero-stats', delay: 600, dur: 600, from: { opacity: 0, transform: 'translateY(20px)' } },
-            { sel: '.heartbeat', delay: 800, dur: 400, from: { opacity: 0 } },
-            { sel: '.mode-tabs', delay: 700, dur: 500, from: { opacity: 0, transform: 'translateY(20px)' } },
-            { sel: '.main-layout', delay: 850, dur: 700, from: { opacity: 0, transform: 'translateY(24px)' } },
-        ];
-
-        seq.forEach(({ sel, delay, dur, from }) => {
-            const el = q(sel);
-            if (!el) return;
-            Object.assign(el.style, from, { transition: 'none' });
-            setTimeout(() => {
-                el.style.transition = `opacity ${dur}ms cubic-bezier(0.22,1,0.36,1), transform ${dur}ms cubic-bezier(0.22,1,0.36,1)`;
-                el.style.opacity = '1';
-                el.style.transform = 'none';
-            }, delay);
-        });
+        // No-op: CSS animations handle all entrance effects safely
     }
 
     /* ──────────────────────────────────────────────────────────────────────
